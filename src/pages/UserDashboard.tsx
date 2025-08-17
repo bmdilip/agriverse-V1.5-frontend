@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { useAuthStore } from '../store/auth.store';
 import { 
   Wallet, 
   TrendingUp, 

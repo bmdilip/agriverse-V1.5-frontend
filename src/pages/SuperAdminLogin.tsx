@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../hooks/useAuth';
+import { useAuthStore } from '../store/auth.store';
 import { 
   Crown, 
   Shield, 
