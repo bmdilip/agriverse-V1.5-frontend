@@ -40,6 +40,7 @@ import {
   DollarSign,
   TrendingUp,
   Activity,
+  Building,
   Server,
   Globe,
   Zap,
