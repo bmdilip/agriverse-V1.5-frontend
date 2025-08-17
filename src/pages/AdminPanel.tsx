@@ -67,131 +67,14 @@ import toast from 'react-hot-toast';
 const AdminPanel = () => {
   const [activeModule, setActiveModule] = useState('projects');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(undefined); // undefined = checking, true = admin, false = not admin
-  const [adminWallet, setAdminWallet] = useState('');
+  const { isAuthenticated, role, isDemoMode, isAdminPreview, address } = useAuth();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [checkingAccess, setCheckingAccess] = useState(true);
-  const [isConnecting, setIsConnecting] = useState(false);
   const navigate = useNavigate();
 
-  // Check admin access on mount and wallet change
-  useEffect(() => {
-    checkAdminAccess();
-  }, []);
-
-  const checkAdminAccess = async () => {
-    setCheckingAccess(true);
-    console.log('🔍 Checking admin access...');
-    
-    try {
-      // Check if wallet is connected
-      if (typeof window.ethereum === 'undefined') {
-        console.log('❌ MetaMask not installed');
-        setIsAdmin(false);
-        setCheckingAccess(false);
-        return;
-      }
-
-      // Get connected accounts
-      const accounts = await window.ethereum.request({
-        method: 'eth_accounts'
-      });
-
-      if (accounts.length === 0) {
-        console.log('❌ No wallet connected');
-        setIsAdmin(false);
-        setCheckingAccess(false);
-        return;
-      }
-
-      const walletAddress = accounts[0];
-      console.log('🔗 Connected wallet:', walletAddress);
-      setAdminWallet(walletAddress);
-      setIsConnected(true);
-
-      // Mock admin check - replace with actual smart contract call
-      // const adminContract = new ethers.Contract(ADMIN_CONTROLS_ADDRESS, ADMIN_ABI, provider);
-      // const isAdminResult = await adminContract.isAdmin(walletAddress);
-      
-      // For demo purposes, allow specific test wallets or any connected wallet
-      const testAdminWallets = [
-        '0x1234567890123456789012345678901234567890',
-        '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-        // Add more test admin wallets here
-      ];
-      
-      // For development: allow any connected wallet to be admin
-      const isAdminResult = true; // Change to: testAdminWallets.includes(walletAddress.toLowerCase()) for production
-      
-      console.log('🔐 Admin check result:', isAdminResult);
-      setIsAdmin(isAdminResult);
-      
-      if (isAdminResult) {
-        console.log('✅ Admin access granted');
-        toast.success('Admin access verified');
-      } else {
-        console.log('❌ Admin access denied');
-        toast.error('Access denied: Admin privileges required');
-      }
-      
-    } catch (error) {
-      console.error('❌ Admin access check failed:', error);
-      setIsAdmin(false);
-      toast.error('Failed to verify admin access');
-    } finally {
-      setCheckingAccess(false);
-    }
-  };
-
-  const connectWallet = async () => {
-    if (isConnecting) return; // Prevent multiple simultaneous requests
-    
-    setIsConnecting(true);
-    try {
-      if (typeof window.ethereum === 'undefined') {
-        toast.error('MetaMask is not installed');
-        return;
-      }
-
-      const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts'
-      });
-
-      if (accounts.length > 0) {
-        setAdminWallet(accounts[0]);
-        setIsConnected(true);
-        checkAdminAccess(); // Re-check admin status after connection
-      }
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      
-      // Handle specific wallet connection errors
-      if (error.code === 4001) {
-        toast.error('Wallet connection rejected by user');
-      } else if (error.code === -32002) {
-        toast.error('Wallet connection request already pending. Please check your wallet.');
-        return; // Exit early to prevent further error processing
-      } else if (error.code === -32603) {
-        toast.error('Internal wallet error. Please try again.');
-      } else if (error.message && error.message.includes('User rejected')) {
-        toast.error('Wallet connection rejected by user');
-      } else if (error.message && error.message.includes('No window with id')) {
-        toast.error('Wallet popup was closed. Please try connecting again.');
-      } else if (error.message && error.message.includes('already pending')) {
-        toast.error('Wallet connection request already pending. Please check your wallet.');
-        return; // Exit early to prevent further error processing
-      } else {
-        // For unhandled errors, show the specific error message
-        const errorMessage = error.message || error.toString() || 'Unknown wallet error';
-        toast.error(`Failed to connect wallet: ${errorMessage}`);
-      }
-    } finally {
-      setIsConnecting(false);
-    }
-  };
+  // Check if user has admin access (demo mode, preview mode, or authenticated admin)
+  const hasAdminAccess = isDemoMode || isAdminPreview || (isAuthenticated && (role === 'admin' || role === 'superadmin'));
 
   const adminModules = [
     { 
@@ -376,28 +259,8 @@ const AdminPanel = () => {
     toast.success('Copied to clipboard');
   };
 
-  // Loading state while checking access
-  if (checkingAccess) {
-    return (
-      <div className="min-h-screen bg-agri-dark flex items-center justify-center">
-        <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 border-4 border-agri-primary/20 border-t-agri-primary rounded-full mx-auto mb-4"
-          />
-          <h2 className="text-2xl font-light text-agri-text mb-2">Checking Admin Access...</h2>
-          <p className="text-agri-text/70">Verifying wallet permissions</p>
-          {adminWallet && (
-            <p className="text-agri-text/50 text-sm mt-2 font-mono">{adminWallet}</p>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   // Not authorized state
-  if (isAdmin === false) {
+  if (!hasAdminAccess) {
     return (
       <div className="min-h-screen bg-agri-dark flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-8">
@@ -412,31 +275,30 @@ const AdminPanel = () => {
             <p className="text-agri-text/70 mb-6">
               You are not authorized to access the admin dashboard. Admin privileges are required.
             </p>
-            {!isConnected ? (
+            {!isAuthenticated && !isDemoMode ? (
               <motion.button
-                onClick={connectWallet}
-                disabled={isConnecting}
+                onClick={() => {
+                  if (import.meta.env.VITE_DEMO_MODE === 'true') {
+                    useAuthStore.getState().enableDemoMode('admin');
+                    toast.success('Demo admin access enabled');
+                  } else {
+                    toast.error('Please connect your wallet first');
+                  }
+                }}
                 className="px-6 py-3 bg-agri-primary text-agri-dark rounded-lg font-medium hover:bg-agri-primary/90 transition-colors"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Wallet className="w-4 h-4 mr-2 inline" />
-                {isConnecting ? 'Connecting...' : 'Connect Admin Wallet'}
+                {import.meta.env.VITE_DEMO_MODE === 'true' ? 'Enable Demo Admin' : 'Connect Admin Wallet'}
               </motion.button>
             ) : (
               <div className="space-y-4">
                 <div className="bg-agri-secondary/20 rounded-lg p-4">
                   <p className="text-agri-text/70 text-sm mb-2">Connected Wallet:</p>
-                  <p className="text-agri-text font-mono text-sm">{adminWallet}</p>
+                  <p className="text-agri-text font-mono text-sm">{address}</p>
                 </div>
                 <div className="flex space-x-3">
-                  <button
-                    onClick={checkAdminAccess}
-                    className="flex-1 px-4 py-2 bg-agri-secondary/50 text-agri-text rounded-lg hover:bg-agri-secondary transition-colors"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2 inline" />
-                    Retry Check
-                  </button>
                   <button
                     onClick={() => navigate('/')}
                     className="flex-1 px-4 py-2 bg-agri-primary text-agri-dark rounded-lg hover:bg-agri-primary/90 transition-colors"
@@ -468,7 +330,7 @@ const AdminPanel = () => {
           </div>
           <div>
             <h2 className="text-lg font-light text-agri-text">Admin Panel</h2>
-            <p className="text-xs text-agri-text/60">Production Control</p>
+            <p className="text-xs text-agri-text/60">{isDemoMode ? 'Demo Mode' : 'Production Control'}</p>
           </div>
         </div>
 
@@ -481,9 +343,9 @@ const AdminPanel = () => {
             <div>
               <div className="text-agri-text text-sm font-medium">Admin Access</div>
               <div className="flex items-center space-x-2">
-                <span className="text-agri-text/70 text-xs font-mono">{adminWallet}</span>
+                <span className="text-agri-text/70 text-xs font-mono">{address}</span>
                 <button 
-                  onClick={() => copyToClipboard(adminWallet)}
+                  onClick={() => copyToClipboard(address || '')}
                   className="text-agri-primary hover:text-agri-primary/80"
                 >
                   <Copy className="w-3 h-3" />
@@ -794,7 +656,7 @@ const AdminPanel = () => {
               <div className="flex items-center space-x-2 bg-agri-secondary/20 rounded-lg px-3 py-2">
                 <Shield className="w-4 h-4 text-agri-primary" />
                 <span className="text-agri-text font-mono text-sm">{adminWallet}</span>
-              </div>
+                  {isDemoMode ? 'DEMO MODE' : address}
               
               <button className="p-2 bg-agri-primary/20 text-agri-primary rounded-lg hover:bg-agri-primary/30 transition-colors">
                 <Bell className="w-5 h-5" />

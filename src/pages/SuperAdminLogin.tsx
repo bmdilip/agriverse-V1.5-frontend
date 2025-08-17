@@ -23,7 +23,16 @@ const SuperAdminLogin = () => {
   const [loginStep, setLoginStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const { isDemoMode } = useAuth();
   const navigate = useNavigate();
+
+  // Auto-enable demo superadmin if in demo mode
+  useEffect(() => {
+    if (import.meta.env.VITE_DEMO_MODE === 'true') {
+      useAuthStore.getState().enableDemoMode('superadmin');
+      navigate('/superadmin-dashboard');
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();

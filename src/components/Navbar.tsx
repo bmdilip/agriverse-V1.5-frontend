@@ -33,10 +33,9 @@ import {
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
-  const [isConnecting, setIsConnecting] = useState(false);
+  const { isAuthenticated, isDemoMode, connectMetaMask, disconnect, address } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
@@ -48,60 +47,25 @@ const Navbar = () => {
   }, []);
 
   const connectWallet = async () => {
-    if (isWalletConnected) {
-      setIsWalletConnected(false);
+    if (isAuthenticated) {
+      disconnect();
       toast.success('Wallet disconnected');
       return;
     }
 
-    setIsConnecting(true);
-    
     try {
-      // Check if we're in admin preview mode
-      const isPreviewMode = import.meta.env.VITE_ADMIN_PREVIEW === 'true';
-      if (isPreviewMode) {
-        setIsWalletConnected(true);
-        toast.success('Preview wallet connected!');
-        setIsConnecting(false);
+      // Check if we're in demo mode
+      if (import.meta.env.VITE_DEMO_MODE === 'true') {
+        useAuthStore.getState().enableDemoMode('user');
+        toast.success('Demo wallet connected!');
         return;
       }
 
-      if (typeof window.ethereum === 'undefined') {
-        toast.error('MetaMask is not installed. Please install MetaMask to continue.');
-        setIsConnecting(false);
-        return;
-      }
-
-      const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts',
-      });
-
-      if (accounts.length > 0) {
-        setIsWalletConnected(true);
-        toast.success('Wallet connected successfully!');
-      }
+      await connectMetaMask();
     } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      
-      if (error.code === 4001) {
-        toast.error('Connection rejected. Please approve the connection request in MetaMask.');
-      } else if (error.code === -32002) {
-        toast.error('Connection request pending. Please check MetaMask.');
-      } else {
-        toast.error('Failed to connect to MetaMask. Please make sure MetaMask is unlocked and try again.');
-      }
-    } finally {
-      setIsConnecting(false);
+      toast.error('Failed to connect wallet');
     }
   };
-
-  // Auto-connect in preview mode
-  useEffect(() => {
-    const isPreviewMode = import.meta.env.VITE_ADMIN_PREVIEW === 'true';
-    if (isPreviewMode && !isWalletConnected) {
-      setIsWalletConnected(true);
-    }
-  }, []);
 
   const navigation = [
     {
@@ -291,19 +255,18 @@ const Navbar = () => {
             {/* Wallet Connection */}
             <motion.button
               onClick={connectWallet}
-              disabled={isConnecting}
               className={`flex items-center space-x-2 px-4 py-2 rounded-xl border transition-all duration-200 ${
-                isWalletConnected
+                isAuthenticated
                   ? 'bg-agri-primary/10 text-agri-primary border-agri-primary/30 neon-glow'
                   : 'glass-effect text-agri-text border-agri-border hover:border-agri-primary/50 hover:bg-agri-primary/5'
-              } ${isConnecting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              }`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              title={isWalletConnected ? 'Connected Wallet' : 'Connect Wallet'}
+              title={isAuthenticated ? 'Connected Wallet' : 'Connect Wallet'}
             >
               <Wallet className="w-4 h-4" />
               <span className="text-sm font-light hidden xl:block">
-                {isConnecting ? 'Connecting...' : isWalletConnected ? '0x1234...5678' : 'Connect'}
+                {isAuthenticated ? (isDemoMode ? 'Demo Wallet' : `${address?.slice(0, 6)}...${address?.slice(-4)}`) : 'Connect'}
               </span>
             </motion.button>
             
@@ -438,17 +401,16 @@ const Navbar = () => {
                 {/* Wallet Connection */}
                 <motion.button
                   onClick={connectWallet}
-                  disabled={isConnecting}
                   className={`w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-xl border transition-all duration-200 ${
-                    isWalletConnected
+                    isAuthenticated
                       ? 'bg-agri-primary/10 border-agri-primary/30 text-agri-primary'
                       : 'glass-effect border-agri-border text-agri-text hover:border-agri-primary/50'
-                  } ${isConnecting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  }`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <Wallet className="w-4 h-4" />
-                  <span>{isConnecting ? 'Connecting...' : isWalletConnected ? '0x1234...5678' : 'Connect Wallet'}</span>
+                  <span>{isAuthenticated ? (isDemoMode ? 'Demo Wallet' : `${address?.slice(0, 6)}...${address?.slice(-4)}`) : 'Connect Wallet'}</span>
                 </motion.button>
                 
                 {/* Dashboard Links */}

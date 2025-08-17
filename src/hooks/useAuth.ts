@@ -32,6 +32,11 @@ export const useAuth = () => {
     return import.meta.env.VITE_ADMIN_PREVIEW === 'true' && token?.startsWith('preview-token');
   };
 
+  // Check if demo mode is enabled
+  const isDemoMode = () => {
+    return import.meta.env.VITE_DEMO_MODE === 'true' && token?.startsWith('demo-token');
+  };
+
   // Connect wallet with MetaMask
   const connectMetaMask = async () => {
     try {
@@ -85,7 +90,12 @@ export const useAuth = () => {
   // Auto-enable admin preview if in preview mode and not connected
   useEffect(() => {
     const isPreviewMode = import.meta.env.VITE_ADMIN_PREVIEW === 'true';
-    if (isPreviewMode && !isConnected) {
+    const isDemoModeEnabled = import.meta.env.VITE_DEMO_MODE === 'true';
+    
+    if (isDemoModeEnabled && !isConnected) {
+      // Auto-enable demo mode for development
+      useAuthStore.getState().enableDemoMode('user');
+    } else if (isPreviewMode && !isConnected) {
       // Auto-enable admin preview for development
       enableAdminPreview('admin');
     }
@@ -106,6 +116,7 @@ export const useAuth = () => {
     isAdmin: hasRole(['admin', 'superadmin']),
     isSuperAdmin: hasRole('superadmin'),
     isAdminPreview: isAdminPreview(),
+    isDemoMode: isDemoMode(),
     
     // Actions
     connectMetaMask,

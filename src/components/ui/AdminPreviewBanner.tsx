@@ -4,9 +4,9 @@ import { AlertTriangle, X } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export const AdminPreviewBanner: React.FC = () => {
-  const { isAdminPreview, disconnect } = useAuth();
+  const { isAdminPreview, isDemoMode, disconnect } = useAuth();
 
-  if (!isAdminPreview) return null;
+  if (!isAdminPreview && !isDemoMode) return null;
 
   return (
     <motion.div
@@ -18,7 +18,10 @@ export const AdminPreviewBanner: React.FC = () => {
         <div className="flex items-center space-x-3">
           <AlertTriangle className="w-5 h-5 text-yellow-400" />
           <span className="text-yellow-400 font-medium">
-            🚧 PREVIEW MODE: Wallet check disabled. This is a demo environment.
+            🚧 {isDemoMode ? 'DEMO MODE' : 'PREVIEW MODE'}: Wallet check disabled. This is a demo environment.
+          </span>
+          <span className="text-yellow-400/70 text-sm">
+            Set VITE_DEMO_MODE=false for production
           </span>
         </div>
         <button

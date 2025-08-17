@@ -42,12 +42,20 @@ const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
-  const [connectedWallet] = useState('0x1234567890123456789012345678901234567890');
+  const { address, isDemoMode, isAuthenticated } = useAuth();
+  const connectedWallet = address || '0x1234567890123456789012345678901234567890';
   const [userProfile, setUserProfile] = useState({
     name: 'John Doe',
     bio: 'Sustainable agriculture enthusiast and carbon offset advocate',
     avatar: '🌱'
   });
+
+  // Auto-enable demo mode if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated && import.meta.env.VITE_DEMO_MODE === 'true') {
+      useAuthStore.getState().enableDemoMode('user');
+    }
+  }, [isAuthenticated]);
 
   const userStats = {
     totalInvested: '$12,450',

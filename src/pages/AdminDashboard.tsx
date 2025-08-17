@@ -69,7 +69,7 @@ import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
   const { hasAccess } = useAdminGuard('admin');
-  const { isAdminPreview, role, address } = useAuth();
+  const { isAdminPreview, isDemoMode, role, address } = useAuth();
   const { sidebarCollapsed, setSidebarCollapsed } = useUIStore();
   const [activeModule, setActiveModule] = useState('projects');
   const navigate = useNavigate();
@@ -187,7 +187,7 @@ const AdminDashboard = () => {
           <div>
             <h2 className="text-lg font-light text-agri-text">Admin Panel</h2>
             <p className="text-xs text-agri-text/60">
-              {isAdminPreview ? 'Preview Mode' : 'Production Control'}
+              {isDemoMode ? 'Demo Mode' : isAdminPreview ? 'Preview Mode' : 'Production Control'}
             </p>
           </div>
         </div>
@@ -200,11 +200,11 @@ const AdminDashboard = () => {
             </div>
             <div>
               <div className="text-agri-text text-sm font-medium">
-                {isAdminPreview ? 'Preview Access' : 'Admin Access'}
+                {isDemoMode ? 'Demo Access' : isAdminPreview ? 'Preview Access' : 'Admin Access'}
               </div>
               <div className="flex items-center space-x-2">
                 <span className="text-agri-text/70 text-xs font-mono">
-                  {isAdminPreview ? 'PREVIEW MODE' : `${address?.slice(0, 6)}...${address?.slice(-4)}`}
+                  {isDemoMode ? 'DEMO MODE' : isAdminPreview ? 'PREVIEW MODE' : `${address?.slice(0, 6)}...${address?.slice(-4)}`}
                 </span>
               </div>
             </div>
@@ -369,7 +369,7 @@ const AdminDashboard = () => {
               <div className="flex items-center space-x-2 bg-agri-secondary/20 rounded-lg px-3 py-2">
                 <Shield className="w-4 h-4 text-agri-primary" />
                 <span className="text-agri-text font-mono text-sm">
-                  {isAdminPreview ? 'PREVIEW' : `${address?.slice(0, 6)}...${address?.slice(-4)}`}
+                  {isDemoMode ? 'DEMO' : isAdminPreview ? 'PREVIEW' : `${address?.slice(0, 6)}...${address?.slice(-4)}`}
                 </span>
               </div>
               

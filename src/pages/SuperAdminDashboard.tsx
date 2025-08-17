@@ -1,8 +1,20 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Crown, Shield, Users, BarChart3, Settings, Database, Award } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { useAuthStore } from '../store/auth.store';
+import { useEffect } from 'react';
 
 const SuperAdminDashboard = () => {
+  const { isAuthenticated, isDemoMode } = useAuth();
+
+  // Auto-enable demo mode if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated && import.meta.env.VITE_DEMO_MODE === 'true') {
+      useAuthStore.getState().enableDemoMode('superadmin');
+    }
+  }, [isAuthenticated]);
+
   return (
     <div className="min-h-screen py-20">
       <div className="max-w-7xl mx-auto px-4">

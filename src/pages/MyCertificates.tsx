@@ -29,18 +29,25 @@ import { useAuth } from '../hooks/useAuth';
 import { AddressShort } from '../components/ui/AddressShort';
 
 const MyCertificates = () => {
-  const { address } = useAuth();
+  const { address, isAuthenticated, isDemoMode } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [assetTypeFilter, setAssetTypeFilter] = useState('all');
+
+  // Auto-enable demo mode if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated && import.meta.env.VITE_DEMO_MODE === 'true') {
+      useAuthStore.getState().enableDemoMode('user');
+    }
+  }, [isAuthenticated]);
 
   // Fetch user certificates
   const { data: certificates = [], isLoading, error, refetch } = useQuery({
     queryKey: ['certificates', address],
     queryFn: async () => {
-      if (!address) return [];
+      const walletAddress = address || '0x1234567890123456789012345678901234567890';
       try {
-        return await certificateApi.getByUser(address);
+        return await certificateApi.getByUser(walletAddress);
       } catch (error) {
         console.error('Failed to fetch certificates:', error);
         // Return sample certificates for demo
@@ -62,7 +69,7 @@ const MyCertificates = () => {
             claimable: false,
             autoExpire: true,
             description: "Premium organic wheat cultivation with certified practices",
-            userAddress: address,
+            userAddress: walletAddress,
             metadata: {},
             createdAt: "2025-01-15T00:00:00Z",
             updatedAt: "2025-01-15T00:00:00Z"
@@ -84,7 +91,7 @@ const MyCertificates = () => {
             claimable: false,
             autoExpire: true,
             description: "Sustainable teak plantation with long-term growth potential",
-            userAddress: address,
+            userAddress: walletAddress,
             metadata: {},
             createdAt: "2025-01-12T00:00:00Z",
             updatedAt: "2025-01-12T00:00:00Z"
@@ -92,7 +99,7 @@ const MyCertificates = () => {
         ];
       }
     },
-    enabled: !!address,
+    enabled: true, // Always enabled in demo mode
     retry: false,
     staleTime: 30000
   });
@@ -102,7 +109,7 @@ const MyCertificates = () => {
       await certificateApi.issue({
         batchId: certId, // This should be properly mapped
         nftId: certId,
-        userAddress: address!
+        userAddress: address || '0x1234567890123456789012345678901234567890'
       });
       toast.success(`Certificate ${certId} claimed successfully!`);
       refetch();
@@ -242,7 +249,7 @@ const MyCertificates = () => {
               </div>
               <div>
                 <h3 className="text-lg font-medium text-agri-text">Connected Wallet</h3>
-                <AddressShort address={address || ''} />
+                <AddressShort address={address || '0x1234567890123456789012345678901234567890'} />
               </div>
             </div>
             <button 

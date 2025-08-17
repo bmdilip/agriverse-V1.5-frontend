@@ -20,6 +20,9 @@ export interface AuthActions {
   clearError: () => void;
   // Admin Preview mode
   enableAdminPreview: (role: 'admin' | 'superadmin') => void;
+  // Demo mode
+  enableDemoMode: (role?: 'user' | 'admin' | 'superadmin') => void;
+  isDemoMode: () => boolean;
 }
 
 export const useAuthStore = create<AuthState & AuthActions>()(
@@ -109,6 +112,39 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           role,
           error: null
         });
+      },
+
+      // Demo mode (bypass wallet for all dashboards)
+      enableDemoMode: (role: 'user' | 'admin' | 'superadmin' = 'user') => {
+        const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
+        if (!isDemoMode) return;
+
+        const mockAddress = role === 'admin' 
+          ? import.meta.env.VITE_MOCK_ADMIN_ADDRESS 
+          : role === 'superadmin'
+            ? import.meta.env.VITE_MOCK_SUPERADMIN_ADDRESS
+            : import.meta.env.VITE_MOCK_USER_ADDRESS;
+
+        set({
+          isConnected: true,
+          address: mockAddress,
+          token: 'demo-token-' + Math.random().toString(36).substr(2, 9),
+          user: {
+            id: 'demo-user',
+            address: mockAddress,
+            role,
+            profile: { name: `Demo ${role}` }
+          },
+          role,
+          error: null
+        });
+      },
+
+      // Check if in demo mode
+      isDemoMode: () => {
+        const state = get();
+        return import.meta.env.VITE_DEMO_MODE === 'true' && 
+               state.token?.startsWith('demo-token');
       }
     }),
     {

@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from './useAuth';
 
 export const useAdminGuard = (requiredRole: 'admin' | 'superadmin' = 'admin') => {
-  const { isAuthenticated, role, isAdminPreview } = useAuth();
+  const { isAuthenticated, role, isAdminPreview, isDemoMode } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Allow access if in admin preview mode
-    if (isAdminPreview) {
+    // Allow access if in admin preview mode or demo mode
+    if (isAdminPreview || isDemoMode) {
       return;
     }
 
@@ -25,10 +25,10 @@ export const useAdminGuard = (requiredRole: 'admin' | 'superadmin' = 'admin') =>
     if (!hasAccess) {
       navigate('/', { replace: true });
     }
-  }, [isAuthenticated, role, requiredRole, navigate, isAdminPreview]);
+  }, [isAuthenticated, role, requiredRole, navigate, isAdminPreview, isDemoMode]);
 
   return {
-    hasAccess: isAdminPreview || (isAuthenticated && (
+    hasAccess: isAdminPreview || isDemoMode || (isAuthenticated && (
       (requiredRole === 'admin' && (role === 'admin' || role === 'superadmin')) ||
       (requiredRole === 'superadmin' && role === 'superadmin')
     ))
