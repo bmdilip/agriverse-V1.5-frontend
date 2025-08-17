@@ -89,7 +89,22 @@ export const adminApi = {
         pendingProjects: 23,
         pendingKYC: 15,
         contractsDeployed: 8,
-        systemHealth: 'healthy' as const,
+        systemHealth: {
+          status: 'healthy' as const,
+          uptime: 99.9,
+          lastCheck: new Date().toISOString(),
+          services: {
+            api: 'online' as const,
+            database: 'online' as const,
+            blockchain: 'online' as const,
+            ipfs: 'online' as const
+          },
+          metrics: {
+            responseTime: 120,
+            errorRate: 0.1,
+            throughput: 1250
+          }
+        },
         uptime: 99.9
       });
     }
