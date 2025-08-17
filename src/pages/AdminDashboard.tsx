@@ -371,8 +371,6 @@ const AdminDashboard = () => {
                 <span className="text-agri-text font-mono text-sm">
                   {isAdminPreview ? 'PREVIEW' : `${address?.slice(0, 6)}...${address?.slice(-4)}`}
                 </span>
-                  {demoMode ? 'DEMO WALLET' : `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}
-                </span>
               </div>
               
               <button className="p-2 bg-agri-primary/20 text-agri-primary rounded-lg hover:bg-agri-primary/30 transition-colors">
