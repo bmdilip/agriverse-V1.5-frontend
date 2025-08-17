@@ -60,7 +60,7 @@ export const notificationsApi = {
   // Get user notifications
   getByUser: async (userId: string): Promise<Notification[]> => {
     if (USE_MOCK_DATA) {
-      return createMockResponse([
+      const mockData = [
         {
           id: '1',
           userId,
@@ -81,7 +81,8 @@ export const notificationsApi = {
           metadata: { newRole: 'admin' },
           createdAt: new Date(Date.now() - 3600000).toISOString()
         }
-      ]);
+      ];
+      return mockData;
     }
 
     const response = await httpClient.get(`/api/notifications/user/${userId}`);
