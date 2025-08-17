@@ -76,7 +76,7 @@ export const certificateApi = {
   getByUser: async (address: string): Promise<Certificate[]> => {
     if (USE_MOCK_DATA) {
       const userCerts = mockCertificates.filter(cert => cert.userAddress === address);
-      return createMockResponse(userCerts);
+      return userCerts;
     }
 
     const response = await httpClient.get(`/api/certificate/user/${address}`);
