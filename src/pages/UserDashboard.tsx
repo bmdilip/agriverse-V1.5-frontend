@@ -42,6 +42,7 @@ const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
+  const [connectedWallet] = useState('0x1234567890123456789012345678901234567890');
   const [userProfile, setUserProfile] = useState({
     name: 'John Doe',
     bio: 'Sustainable agriculture enthusiast and carbon offset advocate',
@@ -361,9 +362,9 @@ const UserDashboard = () => {
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2 bg-agri-card border border-agri-border rounded-lg px-4 py-2">
                 <Wallet className="w-4 h-4 text-agri-primary" />
-                <span className="text-agri-text font-medium">0x1234...5678</span>
+                <span className="text-agri-text font-medium">{connectedWallet.slice(0, 6)}...{connectedWallet.slice(-4)}</span>
               </div>
-              <Link to="/marketplace">
+              <Link to="/nft-marketplace">
                 <button className="px-4 py-2 bg-agri-accent/20 border border-agri-accent/30 text-agri-accent rounded-lg hover:bg-agri-accent/30 transition-colors">
                   Sell NFTs
                 </button>

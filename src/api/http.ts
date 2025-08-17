@@ -1,7 +1,9 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { mockNFTs, mockCertificates, mockUsers, mockAdminStats } from '../data/mockData';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.agriverse.io';
+const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true' || !import.meta.env.VITE_API_BASE_URL;
 
 // Create axios instance
 export const httpClient = axios.create({
@@ -30,6 +32,12 @@ httpClient.interceptors.request.use(
 httpClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // If using mock data and no real API, don't show network errors
+    if (USE_MOCK_DATA && !error.response) {
+      console.log('Mock data mode - API call intercepted');
+      return Promise.reject(error);
+    }
+
     const { response } = error;
     
     if (response) {
@@ -55,11 +63,26 @@ httpClient.interceptors.response.use(
           toast.error(response.data?.message || 'An error occurred');
       }
     } else {
-      toast.error('Network error - Please check your connection');
+      // Only show network error if not in mock mode
+      if (!USE_MOCK_DATA) {
+        toast.error('Network error - Please check your connection');
+      }
     }
     
     return Promise.reject(error);
   }
 );
+
+// Mock API helper
+export const createMockResponse = (data: any, delay = 500) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ data });
+    }, delay);
+  });
+};
+
+// Export mock data for use in API clients
+export { mockNFTs, mockCertificates, mockUsers, mockAdminStats, USE_MOCK_DATA };
 
 export default httpClient;

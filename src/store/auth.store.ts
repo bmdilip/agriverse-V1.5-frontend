@@ -99,7 +99,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         set({
           isConnected: true,
           address: mockAddress,
-          token: 'preview-token',
+          token: 'preview-token-' + Math.random().toString(36).substr(2, 9),
           user: {
             id: 'preview-user',
             address: mockAddress,

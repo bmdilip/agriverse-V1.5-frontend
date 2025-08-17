@@ -29,7 +29,7 @@ export const useAuth = () => {
 
   // Check if admin preview mode is enabled
   const isAdminPreview = () => {
-    return import.meta.env.VITE_ADMIN_PREVIEW === 'true' && token === 'preview-token';
+    return import.meta.env.VITE_ADMIN_PREVIEW === 'true' && token?.startsWith('preview-token');
   };
 
   // Connect wallet with MetaMask
@@ -81,6 +81,15 @@ export const useAuth = () => {
       refreshUser();
     }
   }, [address, token]);
+
+  // Auto-enable admin preview if in preview mode and not connected
+  useEffect(() => {
+    const isPreviewMode = import.meta.env.VITE_ADMIN_PREVIEW === 'true';
+    if (isPreviewMode && !isConnected) {
+      // Auto-enable admin preview for development
+      enableAdminPreview('admin');
+    }
+  }, []);
 
   return {
     // State

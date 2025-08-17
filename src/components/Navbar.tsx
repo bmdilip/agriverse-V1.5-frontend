@@ -57,6 +57,15 @@ const Navbar = () => {
     setIsConnecting(true);
     
     try {
+      // Check if we're in admin preview mode
+      const isPreviewMode = import.meta.env.VITE_ADMIN_PREVIEW === 'true';
+      if (isPreviewMode) {
+        setIsWalletConnected(true);
+        toast.success('Preview wallet connected!');
+        setIsConnecting(false);
+        return;
+      }
+
       if (typeof window.ethereum === 'undefined') {
         toast.error('MetaMask is not installed. Please install MetaMask to continue.');
         setIsConnecting(false);
@@ -85,6 +94,14 @@ const Navbar = () => {
       setIsConnecting(false);
     }
   };
+
+  // Auto-connect in preview mode
+  useEffect(() => {
+    const isPreviewMode = import.meta.env.VITE_ADMIN_PREVIEW === 'true';
+    if (isPreviewMode && !isWalletConnected) {
+      setIsWalletConnected(true);
+    }
+  }, []);
 
   const navigation = [
     {

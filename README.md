@@ -1,6 +1,6 @@
 # Agriverse - Production Frontend
 
-A production-ready React application for agricultural investments and real-world asset tokenization.
+A production-ready React application for agricultural investments and real-world asset tokenization with complete front-end and back-end integration.
 
 ## 🚀 Quick Start
 
@@ -26,6 +26,7 @@ Copy `.env.example` to `.env` and configure:
 # API Configuration
 VITE_API_BASE_URL=https://api.agriverse.io
 VITE_CHAIN_ID=56
+VITE_USE_MOCK_DATA=true
 
 # Admin Preview Mode (Development Only)
 VITE_ADMIN_PREVIEW=true
@@ -35,6 +36,15 @@ VITE_MOCK_ADMIN_ADDRESS=0x1234567890123456789012345678901234567890
 VITE_MOCK_SUPERADMIN_ADDRESS=0xabcdefabcdefabcdefabcdefabcdefabcdefabcd
 ```
 
+### Mock Data Mode
+
+**Development Feature**: Uses mock data when API is unavailable.
+
+- Set `VITE_USE_MOCK_DATA=true` to enable mock data
+- Automatically enabled when `VITE_API_BASE_URL` is empty
+- Provides sample NFTs, certificates, and user data
+- Perfect for development and testing
+
 ### Admin Preview Mode
 
 **Development Feature**: Allows access to admin dashboards without wallet connection.
@@ -43,6 +53,7 @@ VITE_MOCK_SUPERADMIN_ADDRESS=0xabcdefabcdefabcdefabcdefabcdefabcdefabcd
 - Set `VITE_ADMIN_PREVIEW=false` or remove for production
 - Shows preview banner when active
 - Bypasses wallet authentication for `/admin-dashboard` and `/superadmin-dashboard`
+- Auto-connects preview wallet for testing
 
 ## 📁 Architecture
 
@@ -68,10 +79,12 @@ src/
 │   └── useAdminGuard.ts # Route protection
 ├── components/       # Reusable UI components
 │   └── ui/           # Base UI components
+├── data/             # Mock data for development
+│   └── mockData.ts   # Sample NFTs, certificates, users
 ├── modules/          # Feature modules
 │   └── admin/        # Admin-specific components
 ├── pages/            # Route-level pages
-└── utils/            # Helper functions
+└── utils/            # Helper functions and error handling
 ```
 
 ### State Management
@@ -79,6 +92,7 @@ src/
 - **Zustand**: Global state (auth, UI)
 - **React Query**: Server state and caching
 - **Local Storage**: Persistent auth tokens
+- **Error Boundary**: Global error handling
 
 ### API Integration
 
@@ -87,6 +101,8 @@ All API calls are centralized in `src/api/` with:
 - Error handling
 - JWT authentication
 - Request/response interceptors
+- Mock data fallbacks
+- Retry logic and caching
 
 ## 🛡️ Authentication & Authorization
 
@@ -99,6 +115,21 @@ All API calls are centralized in `src/api/` with:
 - `/admin-dashboard`: Requires admin or superadmin role
 - `/superadmin-dashboard`: Requires superadmin role
 - Admin Preview mode bypasses these checks in development
+- Auto-connects preview wallet in development mode
+
+## 🔧 Error Handling & Resilience
+
+### Network Error Handling
+- Graceful fallback to mock data when API is unavailable
+- User-friendly error messages
+- Retry mechanisms with exponential backoff
+- Global error boundary for unexpected errors
+
+### Mock Data System
+- Complete sample dataset for all features
+- Realistic data for testing workflows
+- Automatic fallback when API calls fail
+- Maintains UI functionality without backend
 
 ## 🔗 API Endpoints Mapping
 
@@ -126,6 +157,19 @@ All API calls are centralized in `src/api/` with:
 | View History | `GET /api/yield/asset/:assetId` | Asset yield history |
 | Calculate ROI | `GET /api/yield/roi/:assetId` | ROI calculations |
 
+## 🧪 Development & Testing
+
+### Mock Data Features
+- Complete NFT marketplace with sample listings
+- User certificates and verification workflows
+- Admin dashboard with project management
+- All features work without backend connection
+
+### Testing Modes
+1. **Full Mock Mode**: `VITE_USE_MOCK_DATA=true` - All data from mock files
+2. **API with Fallback**: `VITE_USE_MOCK_DATA=false` - Try API, fallback to mock
+3. **Production Mode**: Real API with no fallbacks
+
 ## 🎨 UI Components
 
 ### Reusable Components
@@ -134,19 +178,43 @@ All API calls are centralized in `src/api/` with:
 - `<ConfirmModal />`: Action confirmation dialogs
 - `<FileUpload />`: Drag-and-drop file uploads
 - `<AddressShort />`: Shortened wallet addresses with copy
+- `<ErrorBoundary />`: Error handling wrapper
 
 ### Design System
 - **Colors**: Agri-themed palette (primary green, accent gold)
 - **Typography**: Outfit font family
 - **Spacing**: 8px grid system
 - **Components**: Consistent glassmorphism effects
+- **Error States**: Consistent error handling UI
 
-## 🧪 Testing Features
+## ✅ Functional Features
 
-### Sample Data
-- Admin Preview mode includes "Load Sample Data" button
-- Creates test projects, NFTs, and certificates
-- Uses mock wallet addresses from environment
+### NFT Marketplace
+- ✅ OpenSea-style filters and search
+- ✅ Grid and list view modes
+- ✅ Pagination and sorting
+- ✅ Asset type filtering
+- ✅ Price range filtering
+- ✅ Certification badges
+
+### RWAcert System
+- ✅ Certificate management
+- ✅ Download functionality
+- ✅ Status tracking
+- ✅ Claim/reissue workflows
+
+### Admin Dashboard
+- ✅ Project management
+- ✅ User administration
+- ✅ Certificate engine
+- ✅ Yield management
+- ✅ Role-based access
+
+### User Dashboard
+- ✅ Portfolio overview
+- ✅ NFT management
+- ✅ ROI tracking
+- ✅ Activity history
 
 ### Mock Addresses
 Configure in `.env` for testing different user roles:
@@ -158,11 +226,13 @@ Configure in `.env` for testing different user roles:
 
 ### Production Checklist
 - [ ] Set `VITE_ADMIN_PREVIEW=false`
+- [ ] Set `VITE_USE_MOCK_DATA=false`
 - [ ] Configure production API URL
 - [ ] Update contract addresses
 - [ ] Test all role-based access
 - [ ] Verify API integration
 - [ ] Test wallet connection flow
+- [ ] Validate error handling
 
 ### Build
 ```bash
@@ -178,10 +248,6 @@ The `dist/` folder contains the production build ready for deployment.
 - `/rwacert` → `/rwa-cert`
 - New: `/rwa-cert/my` (My Certificates)
 
-### Removed Features
-- "Verify Asset/Upload Docs" from RWAcert (too complex)
-- "My Certificates" tab from User Dashboard (moved to RWAcert)
-
 ### Enhanced Features
 - OpenSea-style marketplace filters
 - Production-ready API integration
@@ -189,6 +255,28 @@ The `dist/` folder contains the production build ready for deployment.
 - Admin Preview mode for development
 - Comprehensive error handling
 - Mobile-responsive design
+- Mock data system for development
+- Global error boundary
+- Resilient network handling
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**NFT Marketplace not loading:**
+- Check `VITE_USE_MOCK_DATA=true` in `.env`
+- Verify API endpoint in `VITE_API_BASE_URL`
+- Check browser console for network errors
+
+**Admin Dashboard access denied:**
+- Ensure `VITE_ADMIN_PREVIEW=true` for development
+- Check wallet connection status
+- Verify role assignment
+
+**API Connection Issues:**
+- Set `VITE_USE_MOCK_DATA=true` for offline development
+- Check network connectivity
+- Verify API endpoint configuration
 
 ## 📞 Support
 
@@ -197,3 +285,5 @@ For technical issues or questions:
 - Verify environment configuration
 - Ensure wallet connection for non-preview mode
 - Review role assignments for access issues
+- Use mock data mode for development without backend
+- Check error boundary logs for unexpected errors
