@@ -74,6 +74,9 @@ const AdminDashboard = () => {
   const [activeModule, setActiveModule] = useState('projects');
   const navigate = useNavigate();
 
+  // Check if user is superadmin to show additional controls
+  const isSuperAdmin = role === 'superadmin' || isDemoMode;
+
   // Redirect if no access
   if (!hasAccess) {
     return (
@@ -153,6 +156,45 @@ const AdminDashboard = () => {
       label: 'Treasury & Fees', 
       icon: DollarSign, 
       description: 'Platform fees, treasury management, and withdrawals'
+    },
+    // SuperAdmin only modules
+    ...(isSuperAdmin ? [
+      { 
+        id: 'superadmin', 
+        label: 'Super Admin Controls', 
+        icon: Crown, 
+        description: 'Advanced system administration and oversight',
+        isHeader: true
+      },
+      { 
+        id: 'user-management', 
+        label: 'User Management', 
+        icon: Users, 
+        description: 'Manage all platform users and roles',
+        parent: 'superadmin'
+      },
+      { 
+        id: 'admin-management', 
+        label: 'Admin Management', 
+        icon: Shield, 
+        description: 'Manage admin users and permissions',
+        parent: 'superadmin'
+      },
+      { 
+        id: 'system-settings', 
+        label: 'System Settings', 
+        icon: Settings, 
+        description: 'Global platform configuration',
+        parent: 'superadmin'
+      },
+      { 
+        id: 'audit-logs', 
+        label: 'Audit Logs', 
+        icon: Activity, 
+        description: 'System activity and security logs',
+        parent: 'superadmin'
+      }
+    ] : [])
     }
   ];
 
@@ -214,19 +256,51 @@ const AdminDashboard = () => {
         {/* Navigation */}
         <nav className="space-y-2">
           {adminModules.map((module) => (
-            <button
-              key={module.id}
-              onClick={() => setActiveModule(module.id)}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${
-                activeModule === module.id
-                  ? 'bg-agri-primary/10 border border-agri-primary/30 text-agri-primary'
-                  : 'text-agri-text hover:bg-agri-secondary/20 hover:text-agri-primary'
-              }`}
-            >
-              <module.icon className="w-5 h-5" />
-              <div className="flex-1">
-                <div className="text-sm font-light">{module.label}</div>
-                <div className="text-xs text-agri-text/50">{module.description}</div>
+            <div key={module.id}>
+              {module.isHeader ? (
+                <div className="mt-6 mb-2">
+                  <div className="flex items-center space-x-2 px-4 py-2 text-purple-400">
+                    <module.icon className="w-4 h-4" />
+                    <span className="text-sm font-medium">{module.label}</span>
+                  </div>
+                  <div className="h-px bg-purple-500/20 mx-4" />
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    if (module.id === 'user-management' || module.id === 'admin-management' || 
+                        module.id === 'system-settings' || module.id === 'audit-logs') {
+                      navigate('/superadmin-dashboard');
+                    } else {
+                      setActiveModule(module.id);
+                    }
+                  }}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${
+                    module.parent ? 'ml-4' : ''
+                  } ${
+                    activeModule === module.id
+                      ? 'bg-agri-primary/10 border border-agri-primary/30 text-agri-primary'
+                      : module.parent
+                        ? 'text-agri-text/80 hover:bg-purple-500/10 hover:text-purple-400'
+                        : 'text-agri-text hover:bg-agri-secondary/20 hover:text-agri-primary'
+                  }`}
+                >
+                  <module.icon className="w-5 h-5" />
+                  <div className="flex-1">
+                    <div className="text-sm font-light">{module.label}</div>
+                    <div className="text-xs text-agri-text/50">{module.description}</div>
+                  </div>
+                </button>
+              )}
+            </div>
+          ))}
+          
+          {/* Quick SuperAdmin Link */}
+          {isSuperAdmin && (
+            <div className="mt-6 pt-4 border-t border-agri-border/50">
+              <button
+                onClick={() => navigate('/superadmin-dashboard')}
+                className="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 text-purple-400 rounded-xl hover:from-purple-500/20 hover:to-pink-500/20 transition-all duration-200"
               </div>
             </button>
           ))}
@@ -316,6 +390,18 @@ const AdminDashboard = () => {
           description="Platform fees, treasury management, and withdrawals"
           icon={DollarSign}
         />;
+      case 'user-management':
+        navigate('/superadmin-dashboard');
+        return null;
+      case 'admin-management':
+        navigate('/superadmin-dashboard');
+        return null;
+      case 'system-settings':
+        navigate('/superadmin-dashboard');
+        return null;
+      case 'audit-logs':
+        navigate('/superadmin-dashboard');
+        return null;
       default: 
         return <ProjectManagement />;
     }

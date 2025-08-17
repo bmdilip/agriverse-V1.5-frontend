@@ -144,7 +144,7 @@ const Navbar = () => {
   const dashboardDropdown = [
     { name: 'User Dashboard', href: '/user-dashboard', icon: User, desc: 'Your investments & portfolio' },
     { name: 'Admin Panel', href: '/admin', icon: Shield, desc: 'Platform administration' },
-    { name: 'SuperAdmin', href: '/superadmin-login', icon: Crown, desc: 'System management' },
+    { name: 'SuperAdmin', href: '/superadmin-dashboard', icon: Crown, desc: 'System management' },
   ];
 
   return (
