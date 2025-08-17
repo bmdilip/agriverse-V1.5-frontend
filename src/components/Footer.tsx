@@ -75,8 +75,8 @@ const Footer = () => {
       links: [
         { name: 'Home', href: '/' },
         { name: 'AgriHub', href: '/agrihub' },
-        { name: 'NFT Marketplace', href: '/marketplace' },
-        { name: 'RWAcert', href: '/rwacert' },
+        { name: 'NFT Marketplace', href: '/nft-marketplace' },
+        { name: 'RWAcert', href: '/rwa-cert' },
       ]
     },
     {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import { 
   Award, 
   Download, 
@@ -23,138 +24,32 @@ import {
   Cog as Cow
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { certificateApi } from '../api/certificate';
+import { useAuth } from '../hooks/useAuth';
+import { AddressShort } from '../components/ui/AddressShort';
 
 const MyCertificates = () => {
-  const [certificates, setCertificates] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { address } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [assetTypeFilter, setAssetTypeFilter] = useState('all');
-  const [connectedWallet, setConnectedWallet] = useState('0x1234...5678');
 
-  // Mock user certificates data
-  const userCertificates = [
-    {
-      id: 1,
-      certId: "RWA-2025-001",
-      title: "RWAcert - Organic Wheat Farm #127",
-      batchId: "BATCH-001",
-      nftId: "NFT-001",
-      nftImage: "https://images.pexels.com/photos/326082/pexels-photo-326082.jpeg?auto=compress&cs=tinysrgb&w=400",
-      assetType: "AgriYield",
-      status: "Verified",
-      issueDate: "2025-01-15",
-      expiryDate: "2025-05-01",
-      ipfsHash: "QmX7Y8Z9A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0",
-      pdfUrl: "https://ipfs.io/ipfs/QmX7Y8Z9...",
-      claimed: true,
-      claimable: false,
-      autoExpire: true,
-      description: "Premium organic wheat cultivation with certified practices"
-    },
-    {
-      id: 2,
-      certId: "RWA-2025-002",
-      title: "RWAcert - Teak Forest Plantation #89",
-      batchId: "BATCH-002",
-      nftId: "NFT-045",
-      nftImage: "https://images.pexels.com/photos/1072179/pexels-photo-1072179.jpeg?auto=compress&cs=tinysrgb&w=400",
-      assetType: "AgriFarms",
-      status: "Verified",
-      issueDate: "2025-01-12",
-      expiryDate: "2029-12-15",
-      ipfsHash: "QmA1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0U1V2W3",
-      pdfUrl: "https://ipfs.io/ipfs/QmA1B2C3...",
-      claimed: true,
-      claimable: false,
-      autoExpire: true,
-      description: "Sustainable teak plantation with long-term growth potential"
-    },
-    {
-      id: 3,
-      certId: "RWA-2025-003",
-      title: "RWAcert - Carbon Offset Trees #234",
-      batchId: "BATCH-003",
-      nftId: "NFT-234",
-      nftImage: "https://images.pexels.com/photos/1632790/pexels-photo-1632790.jpeg?auto=compress&cs=tinysrgb&w=400",
-      assetType: "CarbonVault",
-      status: "Verified",
-      issueDate: "2025-01-10",
-      expiryDate: "N/A",
-      ipfsHash: "QmD4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0U1V2W3X4Y5Z6",
-      pdfUrl: "https://ipfs.io/ipfs/QmD4E5F6...",
-      claimed: true,
-      claimable: false,
-      autoExpire: false,
-      description: "High-impact carbon sequestration project with verified offset credits"
-    },
-    {
-      id: 4,
-      certId: "RWA-2025-004",
-      title: "RWAcert - Premium Dairy Cattle Farm",
-      batchId: "BATCH-004",
-      nftId: "NFT-456",
-      nftImage: "https://images.pexels.com/photos/735968/pexels-photo-735968.jpeg?auto=compress&cs=tinysrgb&w=400",
-      assetType: "Livestock",
-      status: "Pending",
-      issueDate: null,
-      expiryDate: null,
-      ipfsHash: null,
-      pdfUrl: null,
-      claimed: false,
-      claimable: true,
-      autoExpire: true,
-      description: "Premium dairy cattle farm with excellent milk production records"
-    },
-    {
-      id: 5,
-      certId: "RWA-2024-089",
-      title: "RWAcert - Mango Orchard Estate",
-      batchId: "BATCH-005",
-      nftId: "NFT-789",
-      nftImage: "https://images.pexels.com/photos/1459505/pexels-photo-1459505.jpeg?auto=compress&cs=tinysrgb&w=400",
-      assetType: "AgriFarms",
-      status: "Expired",
-      issueDate: "2024-06-15",
-      expiryDate: "2024-12-15",
-      ipfsHash: "QmE5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0U1V2W3X4Y5Z6A7",
-      pdfUrl: "https://ipfs.io/ipfs/QmE5F6G7...",
-      claimed: true,
-      claimable: true, // Can reissue
-      autoExpire: true,
-      description: "Premium mango orchard with export-quality fruit production"
-    }
-  ];
-
-  useEffect(() => {
-    loadUserCertificates();
-  }, [connectedWallet]);
-
-  const loadUserCertificates = async () => {
-    setLoading(true);
-    try {
-      // Simulate API call to fetch user certificates
-      setTimeout(() => {
-        setCertificates(userCertificates);
-        setLoading(false);
-      }, 1000);
-    } catch (error) {
-      console.error('Failed to load certificates:', error);
-      setLoading(false);
-    }
-  };
+  // Fetch user certificates
+  const { data: certificates = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['certificates', address],
+    queryFn: () => address ? certificateApi.getByUser(address) : Promise.resolve([]),
+    enabled: !!address
+  });
 
   const handleClaimCertificate = async (certId) => {
     try {
-      // Simulate smart contract call
+      await certificateApi.issue({
+        batchId: certId, // This should be properly mapped
+        nftId: certId,
+        userAddress: address!
+      });
       toast.success(`Certificate ${certId} claimed successfully!`);
-      
-      // Update local state
-      setCertificates(prev => prev.map(cert => 
-        cert.certId === certId 
-          ? { ...cert, claimed: true, claimable: false, status: 'Verified', issueDate: new Date().toISOString().split('T')[0] }
-          : cert
-      ));
+      refetch();
     } catch (error) {
       toast.error(`Failed to claim certificate: ${error.message}`);
     }
@@ -171,14 +66,9 @@ const MyCertificates = () => {
 
   const handleReissueCertificate = async (certId) => {
     try {
+      await certificateApi.update(certId, { status: 'Pending' });
       toast.success(`Certificate ${certId} reissue requested`);
-      
-      // Update local state
-      setCertificates(prev => prev.map(cert => 
-        cert.certId === certId 
-          ? { ...cert, status: 'Pending', claimable: false }
-          : cert
-      ));
+      refetch();
     } catch (error) {
       toast.error(`Failed to request reissue: ${error.message}`);
     }
@@ -248,16 +138,34 @@ const MyCertificates = () => {
     verified: certificates.filter(c => c.status === 'Verified').length,
     pending: certificates.filter(c => c.status === 'Pending').length,
     expired: certificates.filter(c => c.status === 'Expired').length,
-    claimable: certificates.filter(c => c.claimable).length
+    claimable: certificates.filter(c => c.status === 'Pending').length
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen py-20 flex items-center justify-center">
         <div className="text-center">
           <RefreshCw className="w-12 h-12 text-agri-primary mx-auto mb-4 animate-spin" />
           <h2 className="text-xl font-light text-agri-text mb-2">Loading Certificates...</h2>
           <p className="text-agri-text/70">Fetching your RWAcert certificates</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen py-20 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <h2 className="text-xl font-light text-agri-text mb-2">Failed to Load Certificates</h2>
+          <p className="text-agri-text/70 mb-6">Unable to fetch your certificates. Please try again.</p>
+          <button
+            onClick={() => refetch()}
+            className="px-6 py-3 bg-agri-primary text-agri-dark rounded-lg font-medium hover:bg-agri-primary/90 transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -296,16 +204,11 @@ const MyCertificates = () => {
               </div>
               <div>
                 <h3 className="text-lg font-medium text-agri-text">Connected Wallet</h3>
-                <div className="flex items-center space-x-2">
-                  <span className="text-agri-text/70 font-mono">{connectedWallet}</span>
-                  <button onClick={() => copyToClipboard(connectedWallet)}>
-                    <Copy className="w-4 h-4 text-agri-text/50 hover:text-agri-primary" />
-                  </button>
-                </div>
+                <AddressShort address={address || ''} />
               </div>
             </div>
             <button 
-              onClick={loadUserCertificates}
+              onClick={() => refetch()}
               className="flex items-center space-x-2 px-4 py-2 bg-agri-primary/20 text-agri-primary rounded-lg hover:bg-agri-primary/30 transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
@@ -476,7 +379,7 @@ const MyCertificates = () => {
                       </motion.button>
                     )}
                     
-                    {cert.status === 'Expired' && cert.claimable && (
+                    {cert.status === 'Expired' && (
                       <motion.button
                         onClick={() => handleReissueCertificate(cert.certId)}
                         className="w-full py-3 bg-agri-accent text-agri-dark rounded-lg font-medium hover:bg-agri-accent/90 transition-colors"
@@ -488,7 +391,7 @@ const MyCertificates = () => {
                       </motion.button>
                     )}
                     
-                    {cert.claimed && cert.status === 'Verified' && (
+                    {cert.status === 'Verified' && cert.pdfUrl && (
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleDownloadCertificate(cert)}

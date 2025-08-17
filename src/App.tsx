@@ -2,12 +2,14 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LiveChatWidget from './components/LiveChatWidget';
 import FloatingDrone from './components/FloatingDrone';
+import { AdminPreviewBanner } from './components/ui/AdminPreviewBanner';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -24,7 +26,7 @@ import AVStaking from './pages/AVStaking';
 import NFTNaming from './pages/NFTNaming';
 import SubmitProject from './pages/SubmitProject';
 import LegalZone from './pages/LegalZone';
-import RWAcertVerification from './pages/RWAcertVerification';
+import RWAcertLanding from './pages/RWAcertLanding';
 import AdminPanel from './pages/AdminPanel';
 import AdminDashboard from './pages/AdminDashboard';
 import NFTMarketplace from './pages/NFTMarketplace';
@@ -36,6 +38,16 @@ import AgriHub from './pages/AgriHub';
 import INRPurchase from './pages/INRPurchase';
 import MyCertificates from './pages/MyCertificates';
 
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 // Page transition wrapper
 const PageWrapper = ({ children }) => (
   <motion.div
@@ -85,61 +97,65 @@ const ScrollProgress = () => {
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-agri-dark text-agri-text font-outfit relative">
-        <ScrollProgress />
-        <ScrollToTop />
-        
-        <div className="relative z-10">
-          <Navbar />
-          <main className="pt-20">
-            <AnimatePresence mode="wait">
-              <Routes>
-                <Route path="/" element={<PageWrapper><HomePage /></PageWrapper>} />
-                <Route path="/agriyield" element={<PageWrapper><AgriYield /></PageWrapper>} />
-                <Route path="/agrifarms" element={<PageWrapper><AgriFarms /></PageWrapper>} />
-                <Route path="/carbonvault" element={<PageWrapper><CarbonVault /></PageWrapper>} />
-                <Route path="/gaming" element={<PageWrapper><GamingDashboard /></PageWrapper>} />
-                <Route path="/agrigpt" element={<PageWrapper><AgriGPT /></PageWrapper>} />
-                <Route path="/user-dashboard" element={<PageWrapper><UserDashboard /></PageWrapper>} />
-                <Route path="/referral" element={<PageWrapper><ReferralSystem /></PageWrapper>} />
-                <Route path="/leaderboard" element={<PageWrapper><Leaderboard /></PageWrapper>} />
-                <Route path="/purchase" element={<PageWrapper><Purchase /></PageWrapper>} />
-                <Route path="/staking" element={<PageWrapper><AVStaking /></PageWrapper>} />
-                <Route path="/nft-naming" element={<PageWrapper><NFTNaming /></PageWrapper>} />
-                <Route path="/submit-project" element={<PageWrapper><SubmitProject /></PageWrapper>} />
-                <Route path="/legal" element={<PageWrapper><LegalZone /></PageWrapper>} />
-                <Route path="/rwacert" element={<PageWrapper><RWAcertVerification /></PageWrapper>} />
-                <Route path="/admin" element={<PageWrapper><AdminPanel /></PageWrapper>} />
-                <Route path="/admin-dashboard" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
-                <Route path="/marketplace" element={<PageWrapper><NFTMarketplace /></PageWrapper>} />
-                <Route path="/farm-live" element={<PageWrapper><FarmLive /></PageWrapper>} />
-                <Route path="/superadmin-login" element={<PageWrapper><SuperAdminLogin /></PageWrapper>} />
-                <Route path="/superadmin-dashboard" element={<PageWrapper><SuperAdminDashboard /></PageWrapper>} />
-                <Route path="/livestock" element={<PageWrapper><Livestock /></PageWrapper>} />
-                <Route path="/agrihub" element={<PageWrapper><AgriHub /></PageWrapper>} />
-                <Route path="/inr-purchase" element={<PageWrapper><INRPurchase /></PageWrapper>} />
-              </Routes>
-            </AnimatePresence>
-          </main>
-          <Footer />
-          <LiveChatWidget />
-          <FloatingDrone />
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <div className="min-h-screen bg-agri-dark text-agri-text font-outfit relative">
+          <ScrollProgress />
+          <ScrollToTop />
+          <AdminPreviewBanner />
+          
+          <div className="relative z-10">
+            <Navbar />
+            <main className="pt-20">
+              <AnimatePresence mode="wait">
+                <Routes>
+                  <Route path="/" element={<PageWrapper><HomePage /></PageWrapper>} />
+                  <Route path="/agriyield" element={<PageWrapper><AgriYield /></PageWrapper>} />
+                  <Route path="/agrifarms" element={<PageWrapper><AgriFarms /></PageWrapper>} />
+                  <Route path="/carbonvault" element={<PageWrapper><CarbonVault /></PageWrapper>} />
+                  <Route path="/gaming" element={<PageWrapper><GamingDashboard /></PageWrapper>} />
+                  <Route path="/agrigpt" element={<PageWrapper><AgriGPT /></PageWrapper>} />
+                  <Route path="/user-dashboard" element={<PageWrapper><UserDashboard /></PageWrapper>} />
+                  <Route path="/referral" element={<PageWrapper><ReferralSystem /></PageWrapper>} />
+                  <Route path="/leaderboard" element={<PageWrapper><Leaderboard /></PageWrapper>} />
+                  <Route path="/purchase" element={<PageWrapper><Purchase /></PageWrapper>} />
+                  <Route path="/staking" element={<PageWrapper><AVStaking /></PageWrapper>} />
+                  <Route path="/nft-naming" element={<PageWrapper><NFTNaming /></PageWrapper>} />
+                  <Route path="/submit-project" element={<PageWrapper><SubmitProject /></PageWrapper>} />
+                  <Route path="/legal" element={<PageWrapper><LegalZone /></PageWrapper>} />
+                  <Route path="/rwa-cert" element={<PageWrapper><RWAcertLanding /></PageWrapper>} />
+                  <Route path="/rwa-cert/my" element={<PageWrapper><MyCertificates /></PageWrapper>} />
+                  <Route path="/admin" element={<PageWrapper><AdminPanel /></PageWrapper>} />
+                  <Route path="/admin-dashboard" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
+                  <Route path="/nft-marketplace" element={<PageWrapper><NFTMarketplace /></PageWrapper>} />
+                  <Route path="/farm-live" element={<PageWrapper><FarmLive /></PageWrapper>} />
+                  <Route path="/superadmin-login" element={<PageWrapper><SuperAdminLogin /></PageWrapper>} />
+                  <Route path="/superadmin-dashboard" element={<PageWrapper><SuperAdminDashboard /></PageWrapper>} />
+                  <Route path="/livestock" element={<PageWrapper><Livestock /></PageWrapper>} />
+                  <Route path="/agrihub" element={<PageWrapper><AgriHub /></PageWrapper>} />
+                  <Route path="/inr-purchase" element={<PageWrapper><INRPurchase /></PageWrapper>} />
+                </Routes>
+              </AnimatePresence>
+            </main>
+            <Footer />
+            <LiveChatWidget />
+            <FloatingDrone />
+          </div>
+          
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: 'rgba(26, 31, 43, 0.95)',
+                color: '#DADADA',
+                border: '1px solid #2A2E3C',
+                backdropFilter: 'blur(12px)',
+              },
+            }}
+          />
         </div>
-        
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            style: {
-              background: 'rgba(26, 31, 43, 0.95)',
-              color: '#DADADA',
-              border: '1px solid #2A2E3C',
-              backdropFilter: 'blur(12px)',
-            },
-          }}
-        />
-      </div>
-    </Router>
+      </Router>
+    </QueryClientProvider>
   );
 }
 

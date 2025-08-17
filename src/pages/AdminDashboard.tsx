@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useAdminGuard } from '../hooks/useAdminGuard';
+import { useAuth } from '../hooks/useAuth';
+import { useUIStore } from '../store/ui.store';
+import { ProjectManagement } from '../modules/admin/ProjectManagement';
 import { 
   Users, 
   BarChart3, 
@@ -64,166 +68,30 @@ import {
 import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
+  const { hasAccess } = useAdminGuard('admin');
+  const { isAdminPreview, role, address } = useAuth();
+  const { sidebarCollapsed, setSidebarCollapsed } = useUIStore();
   const [activeModule, setActiveModule] = useState('projects');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
-  const [isAdmin, setIsAdmin] = useState(undefined); // undefined = checking, true = admin, false = not admin
-  const [isConnected, setIsConnected] = useState(false);
-  const [demoMode, setDemoMode] = useState(true); // Temporary demo mode
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null);
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Check admin access on mount and wallet change
-  useEffect(() => {
-    checkWalletAndAdminAccess();
-  }, []);
-
-  // Listen for wallet changes
-  useEffect(() => {
-    if (typeof window.ethereum !== 'undefined') {
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
-      window.ethereum.on('chainChanged', () => window.location.reload());
-      
-      return () => {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-      };
-    }
-  }, []);
-
-  const handleAccountsChanged = (accounts) => {
-    if (accounts.length === 0) {
-      setIsConnected(false);
-      setWalletAddress('');
-      setIsAdmin(false);
-    } else {
-      setWalletAddress(accounts[0]);
-      checkAdminAccess(accounts[0]);
-    }
-  };
-
-  const checkWalletAndAdminAccess = async () => {
-    console.log('🔍 Checking wallet and admin access...');
-    
-    // Temporary demo mode - skip wallet checks
-    if (demoMode) {
-      console.log('🚧 DEMO MODE: Wallet check disabled');
-      setIsAdmin(true);
-      setWalletAddress('0xDEMO...WALLET');
-      setIsConnected(false); // Keep as false to show demo state
-      return;
-    }
-    
-    try {
-      // Check if wallet is connected
-      if (typeof window.ethereum === 'undefined') {
-        console.log('❌ MetaMask not installed');
-        setIsAdmin(false);
-        return;
-      }
-
-      // Get connected accounts
-      const accounts = await window.ethereum.request({
-        method: 'eth_accounts'
-      });
-
-      if (accounts.length === 0) {
-        console.log('❌ No wallet connected');
-        setIsAdmin(false);
-        return;
-      }
-
-      const address = accounts[0];
-      console.log('🔗 Connected wallet:', address);
-      setWalletAddress(address);
-      setIsConnected(true);
-
-      // Check admin access
-      await checkAdminAccess(address);
-      
-    } catch (error) {
-      console.error('❌ Wallet check failed:', error);
-      setIsAdmin(false);
-      toast.error('Failed to check wallet connection');
-    }
-  };
-
-  const checkAdminAccess = async (address) => {
-    console.log('🔐 Checking admin access for:', address);
-    
-    // Temporary demo mode - always grant access
-    if (demoMode) {
-      console.log('🚧 DEMO MODE: Admin access granted automatically');
-      setIsAdmin(true);
-      return;
-    }
-    
-    try {
-      // Mock admin check - replace with actual smart contract call
-      // const adminContract = new ethers.Contract(ADMIN_CONTROLS_ADDRESS, ADMIN_ABI, provider);
-      // const isAdminResult = await adminContract.isAdmin(address);
-      
-      // For demo purposes, allow specific test wallets or any connected wallet
-      const testAdminWallets = [
-        '0x1234567890123456789012345678901234567890',
-        '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-        // Add more test admin wallets here
-      ];
-      
-      // For development: allow any connected wallet to be admin
-      // Change this logic for production to use actual smart contract
-      const isAdminResult = true; // testAdminWallets.includes(address.toLowerCase()) || true;
-      
-      console.log('🔐 Admin check result:', isAdminResult);
-      setIsAdmin(isAdminResult);
-      
-      if (isAdminResult) {
-        console.log('✅ Admin access granted');
-        toast.success('Admin access verified');
-      } else {
-        console.log('❌ Admin access denied');
-        toast.error('Access denied: Admin privileges required');
-      }
-      
-    } catch (error) {
-      console.error('❌ Admin access check failed:', error);
-      setIsAdmin(false);
-      toast.error('Failed to verify admin access');
-    }
-  };
-
-  const connectWallet = async () => {
-    if (demoMode) {
-      toast.info('Demo mode active - wallet connection not required');
-      return;
-    }
-    
-    try {
-      if (typeof window.ethereum === 'undefined') {
-        toast.error('MetaMask is not installed. Please install MetaMask to continue.');
-        return;
-      }
-
-      const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts'
-      });
-
-      if (accounts.length > 0) {
-        const address = accounts[0];
-        setWalletAddress(address);
-        setIsConnected(true);
-        await checkAdminAccess(address);
-      }
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      if (error.code === 4001) {
-        toast.error('Connection rejected. Please approve the connection request.');
-      } else {
-        toast.error('Failed to connect wallet. Please try again.');
-      }
-    }
-  };
+  // Redirect if no access
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="w-16 h-16 text-agri-accent mx-auto mb-4" />
+          <h2 className="text-2xl font-light text-agri-text mb-4">Access Denied</h2>
+          <p className="text-agri-text/70 mb-6">Admin privileges required</p>
+          <button
+            onClick={() => navigate('/')}
+            className="px-6 py-3 bg-agri-primary text-agri-dark rounded-lg font-medium hover:bg-agri-primary/90 transition-colors"
+          >
+            Go Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const adminModules = [
     { 
@@ -301,181 +169,6 @@ const AdminDashboard = () => {
     vaultBalance: 2450000
   };
 
-  // Sample data for testing
-  const [projectBatches] = useState([
-    {
-      id: 1,
-      batchId: 'BATCH-001',
-      name: "Organic Wheat Farm Batch #1",
-      assetType: "AgriYield",
-      status: "Live",
-      supply: 100,
-      minted: 75,
-      price: 500,
-      roi: 18,
-      maturityPeriod: 120,
-      totalInvestment: 125000,
-      goLiveDate: "2025-01-01",
-      expiryDate: "2025-05-01",
-      whitelistOnly: false,
-      resaleEnabled: true,
-      stakingEnabled: true,
-      kycRequired: true,
-      coverImage: "https://images.pexels.com/photos/326082/pexels-photo-326082.jpeg?auto=compress&cs=tinysrgb&w=400",
-      investors: 45,
-      vaultBalance: 37500
-    },
-    {
-      id: 2,
-      batchId: 'BATCH-002',
-      name: "Teak Forest Plantation Batch #1",
-      assetType: "AgriFarms",
-      status: "Live",
-      supply: 50,
-      minted: 32,
-      price: 2000,
-      roi: 12,
-      maturityPeriod: 1825,
-      totalInvestment: 280000,
-      goLiveDate: "2024-12-15",
-      expiryDate: "2029-12-15",
-      whitelistOnly: true,
-      resaleEnabled: false,
-      stakingEnabled: true,
-      kycRequired: true,
-      coverImage: "https://images.pexels.com/photos/1072179/pexels-photo-1072179.jpeg?auto=compress&cs=tinysrgb&w=400",
-      investors: 32,
-      vaultBalance: 64000
-    }
-  ]);
-
-  // Smart contract interaction functions
-  const executeSmartContractAction = async (action, params) => {
-    setLoading(true);
-    console.log(`🔗 Executing smart contract action: ${action}`, params);
-    
-    return new Promise((resolve, reject) => {
-      // Simulate smart contract call
-      setTimeout(() => {
-        setLoading(false);
-        if (Math.random() > 0.1) { // 90% success rate
-          const txHash = '0x' + Math.random().toString(16).substr(2, 40);
-          console.log('✅ Transaction successful:', txHash);
-          resolve({ success: true, txHash });
-        } else {
-          console.log('❌ Transaction failed');
-          reject(new Error('Transaction failed'));
-        }
-      }, 2000);
-    });
-  };
-
-  const confirmSmartContractAction = (actionName, actionFn) => {
-    setConfirmAction({
-      name: actionName,
-      execute: actionFn
-    });
-    setShowConfirmModal(true);
-  };
-
-  const executeConfirmedAction = async () => {
-    if (confirmAction) {
-      try {
-        const result = await confirmAction.execute();
-        toast.success(`${confirmAction.name} completed successfully!`);
-        setShowConfirmModal(false);
-        setConfirmAction(null);
-      } catch (error) {
-        toast.error(`${confirmAction.name} failed: ${error.message}`);
-        setShowConfirmModal(false);
-        setConfirmAction(null);
-      }
-    }
-  };
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard');
-  };
-
-  // Loading state while checking access
-  if (isAdmin === undefined) {
-    return (
-      <div className="min-h-screen bg-agri-dark flex items-center justify-center">
-        <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 border-4 border-agri-primary/20 border-t-agri-primary rounded-full mx-auto mb-4"
-          />
-          <h2 className="text-2xl font-light text-agri-text mb-2">
-            {demoMode ? 'Loading Demo Dashboard...' : 'Checking Admin Access...'}
-          </h2>
-          <p className="text-agri-text/70">
-            {demoMode ? 'Preparing demo environment' : 'Verifying wallet permissions'}
-          </p>
-          {walletAddress && (
-            <p className="text-agri-text/50 text-sm mt-2 font-mono">{walletAddress}</p>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // Not authorized state
-  if (isAdmin === false) {
-    return (
-      <div className="min-h-screen bg-agri-dark flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-8">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.6 }}
-            className="bg-agri-card border border-agri-border rounded-2xl p-8"
-          >
-            <AlertTriangle className="w-16 h-16 text-agri-accent mx-auto mb-4" />
-            <h2 className="text-2xl font-light text-agri-text mb-4">Access Denied</h2>
-            <p className="text-agri-text/70 mb-6">
-              You are not authorized to access the admin dashboard. Admin privileges are required.
-            </p>
-            {!isConnected ? (
-              <motion.button
-                onClick={connectWallet}
-                className="px-6 py-3 bg-agri-primary text-agri-dark rounded-lg font-medium hover:bg-agri-primary/90 transition-colors"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Wallet className="w-4 h-4 mr-2 inline" />
-                Connect Admin Wallet
-              </motion.button>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-agri-secondary/20 rounded-lg p-4">
-                  <p className="text-agri-text/70 text-sm mb-2">Connected Wallet:</p>
-                  <p className="text-agri-text font-mono text-sm">{walletAddress}</p>
-                </div>
-                <div className="flex space-x-3">
-                  <button
-                    onClick={() => checkAdminAccess(walletAddress)}
-                    className="flex-1 px-4 py-2 bg-agri-secondary/50 text-agri-text rounded-lg hover:bg-agri-secondary transition-colors"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2 inline" />
-                    Retry Check
-                  </button>
-                  <button
-                    onClick={() => navigate('/')}
-                    className="flex-1 px-4 py-2 bg-agri-primary text-agri-dark rounded-lg hover:bg-agri-primary/90 transition-colors"
-                  >
-                    Go Home
-                  </button>
-                </div>
-              </div>
-            )}
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
 
   // Sidebar Component
   const Sidebar = () => (
@@ -493,7 +186,9 @@ const AdminDashboard = () => {
           </div>
           <div>
             <h2 className="text-lg font-light text-agri-text">Admin Panel</h2>
-            <p className="text-xs text-agri-text/60">Production Control</p>
+            <p className="text-xs text-agri-text/60">
+              {isAdminPreview ? 'Preview Mode' : 'Production Control'}
+            </p>
           </div>
         </div>
 
@@ -505,20 +200,12 @@ const AdminDashboard = () => {
             </div>
             <div>
               <div className="text-agri-text text-sm font-medium">
-                {demoMode ? 'Demo Access' : 'Admin Access'}
+                {isAdminPreview ? 'Preview Access' : 'Admin Access'}
               </div>
               <div className="flex items-center space-x-2">
                 <span className="text-agri-text/70 text-xs font-mono">
-                  {demoMode ? 'DEMO MODE' : `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}
+                  {isAdminPreview ? 'PREVIEW MODE' : `${address?.slice(0, 6)}...${address?.slice(-4)}`}
                 </span>
-                {!demoMode && (
-                  <button 
-                    onClick={() => copyToClipboard(walletAddress)}
-                    className="text-agri-primary hover:text-agri-primary/80"
-                  >
-                    <Copy className="w-3 h-3" />
-                  </button>
-                )}
               </div>
             </div>
           </div>
@@ -548,149 +235,6 @@ const AdminDashboard = () => {
     </motion.div>
   );
 
-  // Confirmation Modal
-  const ConfirmationModal = () => (
-    <AnimatePresence>
-      {showConfirmModal && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-agri-dark/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-agri-card border border-agri-border rounded-2xl p-6 max-w-md w-full"
-          >
-            <div className="text-center">
-              <AlertTriangle className="w-16 h-16 text-agri-accent mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-agri-text mb-2">Confirm Smart Contract Action</h3>
-              <p className="text-agri-text/70 mb-6">
-                {confirmAction?.name}
-              </p>
-              <div className="bg-agri-secondary/20 rounded-lg p-3 mb-6">
-                <div className="text-agri-text/70 text-sm">This action will execute on the blockchain and cannot be undone.</div>
-              </div>
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => setShowConfirmModal(false)}
-                  className="flex-1 py-3 bg-agri-secondary/50 text-agri-text rounded-lg hover:bg-agri-secondary transition-colors"
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={executeConfirmedAction}
-                  disabled={loading}
-                  className="flex-1 py-3 bg-agri-primary text-agri-dark rounded-lg hover:bg-agri-primary/90 transition-colors disabled:opacity-50"
-                >
-                  {loading ? (
-                    <div className="flex items-center justify-center space-x-2">
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Processing...</span>
-                    </div>
-                  ) : (
-                    'Confirm'
-                  )}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-
-  // Project Management Module
-  const ProjectManagement = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-light text-agri-text">Project Management</h2>
-        <button className="flex items-center space-x-2 px-4 py-2 bg-agri-primary text-agri-dark rounded-lg hover:bg-agri-primary/90 transition-colors">
-          <Plus className="w-4 h-4" />
-          <span>Create New Batch</span>
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {projectBatches.map((batch) => (
-          <div key={batch.id} className="bg-agri-card border border-agri-border rounded-2xl overflow-hidden">
-            <div className="relative h-48">
-              <img src={batch.coverImage} alt={batch.name} className="w-full h-full object-cover" />
-              <div className="absolute top-4 left-4 right-4 flex justify-between">
-                <span className="px-3 py-1 bg-agri-primary/20 text-agri-primary rounded-full text-xs">
-                  {batch.assetType}
-                </span>
-                <span className={`px-3 py-1 rounded-full text-xs ${
-                  batch.status === 'Live' ? 'bg-agri-primary/20 text-agri-primary' :
-                  batch.status === 'Upcoming' ? 'bg-agri-accent/20 text-agri-accent' :
-                  'bg-agri-secondary/50 text-agri-text/70'
-                }`}>
-                  {batch.status}
-                </span>
-              </div>
-            </div>
-            
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-medium text-agri-text">{batch.name}</h3>
-                <span className="text-agri-text/70 text-sm font-mono">{batch.batchId}</span>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                <div>
-                  <span className="text-agri-text/70">ROI:</span>
-                  <span className="text-agri-primary ml-1">{batch.roi}%</span>
-                </div>
-                <div>
-                  <span className="text-agri-text/70">Price:</span>
-                  <span className="text-agri-text ml-1">${batch.price}</span>
-                </div>
-                <div>
-                  <span className="text-agri-text/70">Minted:</span>
-                  <span className="text-agri-text ml-1">{batch.minted}/{batch.supply}</span>
-                </div>
-                <div>
-                  <span className="text-agri-text/70">Investors:</span>
-                  <span className="text-agri-text ml-1">{batch.investors}</span>
-                </div>
-              </div>
-              
-              <div className="flex flex-wrap gap-2 mb-4">
-                {batch.kycRequired && <span className="px-2 py-1 bg-agri-primary/20 text-agri-primary rounded text-xs">KYC</span>}
-                {batch.whitelistOnly && <span className="px-2 py-1 bg-agri-accent/20 text-agri-accent rounded text-xs">Whitelist</span>}
-                {batch.stakingEnabled && <span className="px-2 py-1 bg-agri-primary/20 text-agri-primary rounded text-xs">Staking</span>}
-                {batch.resaleEnabled && <span className="px-2 py-1 bg-agri-accent/20 text-agri-accent rounded text-xs">Resale</span>}
-              </div>
-              
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => {
-                    const action = () => executeSmartContractAction('updateProjectStatus', { 
-                      batchId: batch.batchId, 
-                      status: batch.status === 'Live' ? 'Ended' : 'Live' 
-                    });
-                    confirmSmartContractAction(`Change ${batch.batchId} status to ${batch.status === 'Live' ? 'Ended' : 'Live'}`, action);
-                  }}
-                  className="flex-1 py-2 bg-agri-primary/20 text-agri-primary rounded-lg hover:bg-agri-primary/30 transition-colors text-sm"
-                >
-                  {batch.status === 'Live' ? 'End Project' : 'Go Live'}
-                </button>
-                <button className="flex-1 py-2 bg-agri-accent/20 text-agri-accent rounded-lg hover:bg-agri-accent/30 transition-colors text-sm">
-                  <Edit className="w-4 h-4 mx-auto" />
-                </button>
-                <button className="flex-1 py-2 bg-agri-secondary/50 text-agri-text rounded-lg hover:bg-agri-secondary transition-colors text-sm">
-                  <Camera className="w-4 h-4 mx-auto" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 
   // Placeholder modules for other admin functions
   const PlaceholderModule = ({ title, description, icon: Icon }) => (
@@ -784,24 +328,6 @@ const AdminDashboard = () => {
       
       {/* Main Content */}
       <div className={`transition-all duration-300 ${sidebarCollapsed ? 'ml-0' : 'ml-64'}`}>
-        {/* Demo Mode Banner */}
-        {demoMode && (
-          <div className="bg-agri-accent/20 border-b border-agri-accent/30 p-3">
-            <div className="flex items-center justify-center space-x-3">
-              <AlertTriangle className="w-5 h-5 text-agri-accent" />
-              <span className="text-agri-accent font-medium">
-                🚧 DEMO MODE: Wallet check disabled. This is a preview only.
-              </span>
-              <button
-                onClick={() => setDemoMode(false)}
-                className="px-3 py-1 bg-agri-accent/20 text-agri-accent rounded text-sm hover:bg-agri-accent/30 transition-colors"
-              >
-                Enable Wallet Check
-              </button>
-            </div>
-          </div>
-        )}
-        
         {/* Header */}
         <div className="bg-agri-card border-b border-agri-border p-6">
           <div className="flex items-center justify-between">
@@ -843,6 +369,8 @@ const AdminDashboard = () => {
               <div className="flex items-center space-x-2 bg-agri-secondary/20 rounded-lg px-3 py-2">
                 <Shield className="w-4 h-4 text-agri-primary" />
                 <span className="text-agri-text font-mono text-sm">
+                  {isAdminPreview ? 'PREVIEW' : `${address?.slice(0, 6)}...${address?.slice(-4)}`}
+                </span>
                   {demoMode ? 'DEMO WALLET' : `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}
                 </span>
               </div>
@@ -866,9 +394,6 @@ const AdminDashboard = () => {
           </motion.div>
         </div>
       </div>
-
-      {/* Confirmation Modal */}
-      <ConfirmationModal />
     </div>
   );
 };

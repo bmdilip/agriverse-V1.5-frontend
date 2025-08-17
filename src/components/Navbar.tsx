@@ -97,6 +97,7 @@ const Navbar = () => {
         { name: 'AgriFarms', href: '/agrifarms', desc: 'Long-term tree & land NFTs', icon: TreePine },
         { name: 'CarbonVault', href: '/carbonvault', desc: 'Carbon offset projects', icon: Shield },
         { name: 'Livestock', href: '/livestock', desc: 'Tokenized cattle and dairy units', icon: Cow },
+        { name: 'RWAcert', href: '/rwa-cert', desc: 'Asset certification', icon: Building2 },
       ]
     },
     {
@@ -110,7 +111,7 @@ const Navbar = () => {
       name: 'NFT Marketplace',
       icon: Tag,
       emoji: '🏷',
-      href: '/marketplace',
+      href: '/nft-marketplace',
       subtitle: 'Secondary Resale',
       tooltip: 'Buy & sell NFTs'
     },
@@ -118,7 +119,7 @@ const Navbar = () => {
       name: 'RWAcert',
       icon: Building2,
       emoji: '🏛',
-      href: '/rwacert',
+      href: '/rwa-cert',
       tooltip: 'Asset certification'
     },
     {

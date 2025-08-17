@@ -439,7 +439,6 @@ const UserDashboard = () => {
             {[
               { id: 'overview', label: 'Portfolio', icon: BarChart3 },
               { id: 'nfts', label: 'My NFTs', icon: Shield },
-              { id: 'certificates', label: 'My Certificates', icon: Award },
               { id: 'yields', label: 'ROI Graph', icon: TrendingUp },
               { id: 'calendar', label: 'ROI Calendar', icon: Calendar },
               { id: 'farmlive', label: 'FarmLive', icon: Camera },
@@ -533,7 +532,7 @@ const UserDashboard = () => {
                         Stake AV Tokens
                       </button>
                     </Link>
-                    <Link to="/my-certificates">
+                    <Link to="/rwa-cert/my">
                       <button className="w-full py-3 bg-agri-secondary/50 text-agri-text rounded-lg font-medium hover:bg-agri-secondary transition-colors">
                         View Certificates
                       </button>
