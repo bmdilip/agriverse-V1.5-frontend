@@ -655,8 +655,8 @@ const AdminPanel = () => {
               {/* Admin Wallet */}
               <div className="flex items-center space-x-2 bg-agri-secondary/20 rounded-lg px-3 py-2">
                 <Shield className="w-4 h-4 text-agri-primary" />
-                <span className="text-agri-text font-mono text-sm">{adminWallet}</span>
-                  {isDemoMode ? 'DEMO MODE' : address}
+                <span className="text-agri-text font-mono text-sm">{isDemoMode ? 'DEMO MODE' : address}</span>
+              </div>
               
               <button className="p-2 bg-agri-primary/20 text-agri-primary rounded-lg hover:bg-agri-primary/30 transition-colors">
                 <Bell className="w-5 h-5" />
