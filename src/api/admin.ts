@@ -13,6 +13,8 @@ export interface AdminDashboardStats {
   carbonOffset: number;
   platformRevenue: number;
   vaultBalance: number;
+  systemHealth?: SystemHealth;
+  uptime?: number;
 }
 
 export interface PendingApproval {
