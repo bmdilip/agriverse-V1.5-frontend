@@ -29,6 +29,7 @@ import {
   Sliders,
   X,
   ChevronDown,
+  ChevronLeft,
   Cog as Cow
 } from 'lucide-react';
 import { assetsApi } from '../api/assets';
@@ -192,11 +193,6 @@ const NFTMarketplace = () => {
   });
 
   const displayNFTs = marketplaceData?.assets?.length > 0 ? marketplaceData.assets : filteredSampleNFTs;
-
-  const filterOptions = [
-    enabled: true,
-    retry: false
-  });
 
   const filterOptions = [
     {
@@ -790,7 +786,7 @@ const NFTMarketplace = () => {
                 disabled={page === totalPages}
                 className="p-2 bg-agri-secondary/50 text-agri-text rounded-lg hover:bg-agri-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronDown className="w-4 h-4 rotate-90" />
               </button>
             </div>
           </motion.div>
