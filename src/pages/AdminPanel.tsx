@@ -512,7 +512,6 @@ const AdminPanel = () => {
                 <button className="flex-1 py-2 bg-agri-accent/20 text-agri-accent rounded-lg hover:bg-agri-accent/30 transition-colors text-sm">
                   <Edit className="w-4 h-4 mx-auto" />
                 </button>
-                </button>
                 <button className="flex-1 py-2 bg-agri-secondary/50 text-agri-text rounded-lg hover:bg-agri-secondary transition-colors text-sm">
                   <Camera className="w-4 h-4 mx-auto" />
                 </button>
