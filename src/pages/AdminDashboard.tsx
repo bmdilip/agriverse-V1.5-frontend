@@ -195,7 +195,6 @@ const AdminDashboard = () => {
         parent: 'superadmin'
       }
     ] : [])
-    }
   ];
 
   const dashboardStats = {
@@ -301,9 +300,15 @@ const AdminDashboard = () => {
               <button
                 onClick={() => navigate('/superadmin-dashboard')}
                 className="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 text-purple-400 rounded-xl hover:from-purple-500/20 hover:to-pink-500/20 transition-all duration-200"
-              </div>
-            </button>
-          ))}
+              >
+                <Crown className="w-5 h-5" />
+                <div className="flex-1 text-left">
+                  <div className="text-sm font-light">SuperAdmin Dashboard</div>
+                  <div className="text-xs text-purple-400/70">Advanced Controls</div>
+                </div>
+              </button>
+            </div>
+          )}
         </nav>
       </div>
     </motion.div>
