@@ -1,0 +1,266 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --agri-dark: #0B0F1C;
+  --agri-card: #1A1F2B;
+  --agri-primary: #B3FFAB;
+  --agri-accent: #F0C75E;
+  --agri-text: #DADADA;
+  --agri-border: #2A2E3C;
+  --agri-secondary: #3B4252;
+}
+
+body {
+  background-color: var(--agri-dark);
+  color: var(--agri-text);
+  font-family: 'Outfit', 'Inter', 'Space Grotesk', sans-serif;
+  font-weight: 300;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--agri-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--agri-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--agri-secondary);
+}
+
+/* Glassmorphism effect */
+.glass-effect {
+  background: rgba(26, 31, 43, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(42, 46, 60, 0.3);
+}
+
+/* Neon glow effects */
+.neon-glow {
+  box-shadow: 0 0 20px rgba(179, 255, 171, 0.4);
+  transition: box-shadow 0.3s ease;
+}
+
+.neon-glow:hover {
+  box-shadow: 0 0 30px rgba(179, 255, 171, 0.7);
+}
+
+/* Neon glow on hover for cards */
+.neon-glow-hover:hover {
+  box-shadow: 0 0 25px rgba(179, 255, 171, 0.3);
+  border-color: rgba(179, 255, 171, 0.5);
+}
+
+/* Button glow */
+.btn-glow {
+  transition: all 0.3s ease;
+}
+
+.btn-glow:hover {
+  box-shadow: 0 0 20px rgba(179, 255, 171, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Card hover lift */
+.card-lift {
+  transition: all 0.3s ease;
+}
+
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(to right, var(--agri-primary), var(--agri-primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 400ms, transform 400ms;
+}
+
+.page-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 400ms, transform 400ms;
+}
+
+/* Particle background for hero and footer only */
+.particle-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.particle-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 80%, rgba(179, 255, 171, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(240, 199, 94, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Custom cursor glow (optional) */
+.cursor-glow {
+  cursor: none;
+}
+
+.cursor-glow::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, rgba(179, 255, 171, 0.6) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: screen;
+  transition: transform 0.1s ease;
+}
+
+/* RWAcert badge styling */
+.rwacert-badge {
+  background: linear-gradient(135deg, var(--agri-accent), #FFD700);
+  color: var(--agri-dark);
+  font-weight: 400;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Status badges */
+.status-live {
+  background: rgba(179, 255, 171, 0.2);
+  color: var(--agri-primary);
+  border: 1px solid rgba(179, 255, 171, 0.3);
+}
+
+.status-upcoming {
+  background: rgba(240, 199, 94, 0.2);
+  color: var(--agri-accent);
+  border: 1px solid rgba(240, 199, 94, 0.3);
+}
+
+.status-ended {
+  background: rgba(59, 66, 82, 0.5);
+  color: rgba(218, 218, 218, 0.7);
+  border: 1px solid rgba(42, 46, 60, 0.5);
+}
+
+/* Floating elements */
+.floating {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .mobile-hidden {
+    display: none;
+  }
+  
+  .mobile-full {
+    width: 100%;
+  }
+}
+
+/* Focus states */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--agri-primary);
+  box-shadow: 0 0 0 3px rgba(179, 255, 171, 0.1);
+}
+
+/* Loading states */
+.loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(179, 255, 171, 0.2), transparent);
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Dropdown animations */
+.dropdown-enter {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.dropdown-enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 200ms, transform 200ms;
+}
+
+.dropdown-exit {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.dropdown-exit-active {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+  transition: opacity 200ms, transform 200ms;
+}
