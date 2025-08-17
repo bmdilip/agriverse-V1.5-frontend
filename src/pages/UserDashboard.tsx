@@ -3,6 +3,9 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthStore } from '../store/auth.store';
+import { useDashboardSync } from '../hooks/useDashboardSync';
+import { notificationsApi } from '../api/notifications';
+import { useQuery } from '@tanstack/react-query';
 import { 
   Wallet, 
   TrendingUp, 
@@ -45,6 +48,7 @@ const UserDashboard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
   const { address, isDemoMode, isAuthenticated } = useAuth();
+  const { syncDashboard } = useDashboardSync();
   const connectedWallet = address || '0x1234567890123456789012345678901234567890';
   const [userProfile, setUserProfile] = useState({
     name: 'John Doe',
@@ -57,7 +61,22 @@ const UserDashboard = () => {
     if (!isAuthenticated && import.meta.env.VITE_DEMO_MODE === 'true') {
       useAuthStore.getState().enableDemoMode('user');
     }
+    
+    // Sync dashboard on load
+    if (isAuthenticated || isDemoMode) {
+      syncDashboard();
+    }
   }, [isAuthenticated]);
+
+  // Fetch user notifications
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['user-notifications', address],
+    queryFn: () => notificationsApi.getByUser(address || 'demo-user'),
+    enabled: isAuthenticated || isDemoMode,
+    refetchInterval: 30000 // Check for new notifications every 30 seconds
+  });
+
+  const unreadNotifications = notifications.filter(n => !n.read);
 
   const userStats = {
     totalInvested: '$12,450',
@@ -374,6 +393,16 @@ const UserDashboard = () => {
                 <Wallet className="w-4 h-4 text-agri-primary" />
                 <span className="text-agri-text font-medium">{connectedWallet.slice(0, 6)}...{connectedWallet.slice(-4)}</span>
               </div>
+              {unreadNotifications.length > 0 && (
+                <div className="relative">
+                  <button className="p-2 bg-agri-accent/20 text-agri-accent rounded-lg hover:bg-agri-accent/30 transition-colors">
+                    <Bell className="w-4 h-4" />
+                  </button>
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs">
+                    {unreadNotifications.length}
+                  </div>
+                </div>
+              )}
               <Link to="/nft-marketplace">
                 <button className="px-4 py-2 bg-agri-accent/20 border border-agri-accent/30 text-agri-accent rounded-lg hover:bg-agri-accent/30 transition-colors">
                   Sell NFTs
@@ -482,6 +511,39 @@ const UserDashboard = () => {
           {activeTab === 'overview' && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2">
+                {/* Notifications Panel */}
+                {unreadNotifications.length > 0 && (
+                  <div className="bg-agri-accent/10 border border-agri-accent/20 rounded-2xl p-6 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-medium text-agri-text">Recent Notifications</h3>
+                      <span className="px-2 py-1 bg-agri-accent/20 text-agri-accent rounded-full text-xs">
+                        {unreadNotifications.length} new
+                      </span>
+                    </div>
+                    <div className="space-y-3">
+                      {unreadNotifications.slice(0, 3).map((notification) => (
+                        <div key={notification.id} className="flex items-start space-x-3 p-3 bg-agri-card rounded-lg">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            notification.type === 'approval' ? 'bg-agri-primary/20 text-agri-primary' :
+                            notification.type === 'rejection' ? 'bg-red-500/20 text-red-400' :
+                            notification.type === 'warning' ? 'bg-agri-accent/20 text-agri-accent' :
+                            'bg-agri-secondary/50 text-agri-text'
+                          }`}>
+                            <Bell className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-agri-text font-medium text-sm">{notification.title}</div>
+                            <div className="text-agri-text/70 text-xs">{notification.message}</div>
+                            <div className="text-agri-text/50 text-xs mt-1">
+                              {new Date(notification.createdAt).toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
                 <div className="bg-agri-card border border-agri-border rounded-2xl p-6 mb-6">
                   <h3 className="text-xl font-medium text-agri-text mb-4">Portfolio Performance</h3>
                   <div className="h-64 bg-agri-secondary/20 rounded-xl flex items-center justify-center">

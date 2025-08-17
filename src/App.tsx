@@ -38,29 +38,7 @@ import Livestock from './pages/Livestock';
 import AgriHub from './pages/AgriHub';
 import INRPurchase from './pages/INRPurchase';
 import MyCertificates from './pages/MyCertificates';
-
-// SuperAdmin Dashboard placeholder
-const SuperAdminDashboard = () => (
-  <div className="min-h-screen py-20 flex items-center justify-center">
-    <div className="text-center">
-      <div className="w-20 h-20 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
-        <Crown className="w-10 h-10 text-purple-400" />
-      </div>
-      <h1 className="text-3xl font-light text-agri-text mb-4">
-        <span className="text-purple-400">SuperAdmin</span> Dashboard
-      </h1>
-      <p className="text-agri-text/70 mb-8">
-        Complete system control and analytics
-      </p>
-      <div className="bg-agri-card border border-agri-border rounded-2xl p-8 max-w-md mx-auto">
-        <h3 className="text-xl font-medium text-agri-text mb-4">Coming Soon</h3>
-        <p className="text-agri-text/70">
-          SuperAdmin dashboard with advanced analytics and system controls
-        </p>
-      </div>
-    </div>
-  </div>
-);
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
 
 // Create a client
 const queryClient = new QueryClient({

@@ -33,6 +33,49 @@ export interface SystemLog {
   timestamp: string;
 }
 
+export interface SmartContract {
+  id: string;
+  name: string;
+  address: string;
+  type: 'nft' | 'vault' | 'token' | 'staking' | 'governance';
+  status: 'active' | 'paused' | 'deprecated';
+  version: string;
+  deployedAt: string;
+  lastUpdated: string;
+  gasUsed: number;
+  transactions: number;
+}
+
+export interface SystemHealth {
+  status: 'healthy' | 'warning' | 'critical';
+  uptime: number;
+  lastCheck: string;
+  services: {
+    api: 'online' | 'offline' | 'degraded';
+    database: 'online' | 'offline' | 'degraded';
+    blockchain: 'online' | 'offline' | 'degraded';
+    ipfs: 'online' | 'offline' | 'degraded';
+  };
+  metrics: {
+    responseTime: number;
+    errorRate: number;
+    throughput: number;
+  };
+}
+
+export interface SecurityLog {
+  id: string;
+  action: string;
+  userId: string;
+  userAddress: string;
+  adminId?: string;
+  details: Record<string, any>;
+  ipAddress: string;
+  userAgent: string;
+  timestamp: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+}
+
 export const adminApi = {
   // Get admin dashboard stats
   getDashboard: async (): Promise<AdminDashboardStats> => {
@@ -40,12 +83,206 @@ export const adminApi = {
       return createMockResponse({
         ...mockAdminStats,
         totalAdmins: 12,
+        totalSuperAdmins: 3,
         pendingProjects: 23,
-        pendingKYC: 15
+        pendingKYC: 15,
+        contractsDeployed: 8,
+        systemHealth: 'healthy' as const,
+        uptime: 99.9
       });
     }
 
     const response = await httpClient.get('/api/admin/dashboard');
+    return response.data;
+  },
+
+  // Get smart contracts
+  getContracts: async (): Promise<SmartContract[]> => {
+    if (USE_MOCK_DATA) {
+      return createMockResponse([
+        {
+          id: '1',
+          name: 'NFT Contract',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'nft' as const,
+          status: 'active' as const,
+          version: 'v2.1',
+          deployedAt: '2024-01-15T00:00:00Z',
+          lastUpdated: '2025-01-15T00:00:00Z',
+          gasUsed: 2450000,
+          transactions: 8934
+        },
+        {
+          id: '2',
+          name: 'Vault Contract',
+          address: '0x9876543210987654321098765432109876543210',
+          type: 'vault' as const,
+          status: 'active' as const,
+          version: 'v1.8',
+          deployedAt: '2024-01-10T00:00:00Z',
+          lastUpdated: '2025-01-10T00:00:00Z',
+          gasUsed: 1850000,
+          transactions: 5642
+        },
+        {
+          id: '3',
+          name: 'Token Contract',
+          address: '0x5555555555555555555555555555555555555555',
+          type: 'token' as const,
+          status: 'active' as const,
+          version: 'v3.2',
+          deployedAt: '2024-01-05T00:00:00Z',
+          lastUpdated: '2025-01-05T00:00:00Z',
+          gasUsed: 3200000,
+          transactions: 12847
+        }
+      ]);
+    }
+
+    const response = await httpClient.get('/api/admin/contracts');
+    return response.data;
+  },
+
+  // Get system health
+  getSystemHealth: async (): Promise<SystemHealth> => {
+    if (USE_MOCK_DATA) {
+      return createMockResponse({
+        status: 'healthy' as const,
+        uptime: 99.9,
+        lastCheck: new Date().toISOString(),
+        services: {
+          api: 'online' as const,
+          database: 'online' as const,
+          blockchain: 'online' as const,
+          ipfs: 'online' as const
+        },
+        metrics: {
+          responseTime: 120,
+          errorRate: 0.1,
+          throughput: 1250
+        }
+      });
+    }
+
+    const response = await httpClient.get('/api/admin/system/health');
+    return response.data;
+  },
+
+  // Get security logs
+  getSecurityLogs: async (params?: {
+    page?: number;
+    limit?: number;
+    severity?: string;
+  }): Promise<SecurityLog[]> => {
+    if (USE_MOCK_DATA) {
+      return createMockResponse([
+        {
+          id: '1',
+          action: 'User Role Updated',
+          userId: '1',
+          userAddress: '0x1234567890123456789012345678901234567890',
+          adminId: 'superadmin',
+          details: { oldRole: 'user', newRole: 'admin' },
+          ipAddress: '192.168.1.1',
+          userAgent: 'Mozilla/5.0...',
+          timestamp: new Date().toISOString(),
+          severity: 'medium' as const
+        },
+        {
+          id: '2',
+          action: 'Project Approved',
+          userId: '2',
+          userAddress: '0x9876543210987654321098765432109876543210',
+          adminId: 'admin1',
+          details: { projectId: 'BATCH-001' },
+          ipAddress: '192.168.1.2',
+          userAgent: 'Mozilla/5.0...',
+          timestamp: new Date(Date.now() - 3600000).toISOString(),
+          severity: 'low' as const
+        },
+        {
+          id: '3',
+          action: 'Contract Paused',
+          userId: 'system',
+          userAddress: '0x0000000000000000000000000000000000000000',
+          adminId: 'superadmin',
+          details: { contractId: 'NFT-CONTRACT' },
+          ipAddress: '192.168.1.1',
+          userAgent: 'Admin Panel',
+          timestamp: new Date(Date.now() - 7200000).toISOString(),
+          severity: 'high' as const
+        }
+      ]);
+    }
+
+    const response = await httpClient.get('/api/admin/security/logs', { params });
+    return response.data;
+  },
+
+  // Pause smart contract
+  pauseContract: async (contractId: string) => {
+    if (USE_MOCK_DATA) {
+      return createMockResponse({ success: true, message: 'Contract paused' });
+    }
+
+    const response = await httpClient.post(`/api/admin/contracts/${contractId}/pause`);
+    return response.data;
+  },
+
+  // Resume smart contract
+  resumeContract: async (contractId: string) => {
+    if (USE_MOCK_DATA) {
+      return createMockResponse({ success: true, message: 'Contract resumed' });
+    }
+
+    const response = await httpClient.post(`/api/admin/contracts/${contractId}/resume`);
+    return response.data;
+  },
+
+  // Add new admin
+  addAdmin: async (data: {
+    address: string;
+    name: string;
+    email?: string;
+    permissions: string[];
+  }) => {
+    if (USE_MOCK_DATA) {
+      const newAdmin = {
+        id: String(Date.now()),
+        address: data.address,
+        role: 'admin' as const,
+        profile: { name: data.name, email: data.email },
+        permissions: data.permissions,
+        stats: { totalInvested: 0, totalReturns: 0, nftsOwned: 0, carbonOffset: 0 },
+        isActive: true,
+        lastLogin: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      return createMockResponse(newAdmin);
+    }
+
+    const response = await httpClient.post('/api/admin/admins', data);
+    return response.data;
+  },
+
+  // Remove admin
+  removeAdmin: async (adminId: string) => {
+    if (USE_MOCK_DATA) {
+      return createMockResponse({ success: true, message: 'Admin removed' });
+    }
+
+    const response = await httpClient.delete(`/api/admin/admins/${adminId}`);
+    return response.data;
+  },
+
+  // Force logout all users
+  forceLogoutAll: async () => {
+    if (USE_MOCK_DATA) {
+      return createMockResponse({ success: true, message: 'All users logged out', count: 1247 });
+    }
+
+    const response = await httpClient.post('/api/admin/security/force-logout-all');
     return response.data;
   },
 
