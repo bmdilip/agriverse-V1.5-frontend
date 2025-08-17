@@ -26,6 +26,7 @@ import toast from 'react-hot-toast';
 import { certificateApi } from '../api/certificate';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
+import { useAuthStore } from '../store/auth.store';
 import { AddressShort } from '../components/ui/AddressShort';
 
 const MyCertificates = () => {
